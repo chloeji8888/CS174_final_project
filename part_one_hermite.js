@@ -164,7 +164,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
     }
 
 
-export class Part_one_hermite extends Part_one_hermite_base
+export class Ticket_Booth extends Part_one_hermite_base
 {                                                    // **Part_one_hermite** is a Scene object that can be added to any display canvas.
                                                      // This particular scene is broken up into two pieces for easier understanding.
                                                      // See the other piece, My_Demo_Base, if you need to see the setup code.
@@ -236,58 +236,6 @@ export class Part_one_hermite extends Part_one_hermite_base
   render_controls()
   {                                 // render_controls(): Sets up a panel of interactive HTML elements, including
     // buttons with key bindings for affecting this scene, and live info readouts.
-    this.control_panel.innerHTML += "Part One:";
-    this.new_line();
-    this.key_triggered_button( "Parse Commands", [], this.parse_commands );
-    this.new_line();
-    this.key_triggered_button( "Draw", [], this.update_scene );
-    this.new_line();
-    this.key_triggered_button( "Load", [], this.load_spline );
-    this.new_line();
-    this.key_triggered_button( "Export", [], this.export_spline );
-    this.new_line();
-
-    /* Some code for your reference
-    this.key_triggered_button( "Copy input", [ "c" ], function() {
-      let text = document.getElementById("input").value;
-      console.log(text);
-      document.getElementById("output").value = text;
-    } );
-    this.new_line();
-    this.key_triggered_button( "Relocate", [ "r" ], function() {
-      let text = document.getElementById("input").value;
-      const words = text.split(' ');
-      if (words.length >= 3) {
-        const x = parseFloat(words[0]);
-        const y = parseFloat(words[1]);
-        const z = parseFloat(words[2]);
-        this.ball_location = vec3(x, y, z)
-        document.getElementById("output").value = "success";
-      }
-      else {
-        document.getElementById("output").value = "invalid input";
-      }
-    } );
-     */
-  }
-
-  parse_commands() {
-    document.getElementById("output").value = "parse_commands";
-    //TODO
-  }
-
-  update_scene() { // callback for Draw button
-    document.getElementById("output").value = "update_scene";
-    //TODO
-  }
-
-  load_spline() {
-    document.getElementById("output").value = "load_spline";
-    //TODO
-  }
-
-  export_spline() {
-    document.getElementById("output").value = "export_spline";
-    //TODO
+    this.control_panel.innerHTML += "Placeholder";
   }
 }
