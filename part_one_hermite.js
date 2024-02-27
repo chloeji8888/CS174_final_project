@@ -27,7 +27,9 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         // Don't define more than one blueprint for the same thing here.
         this.shapes = { 'box'  : new defs.Cube(),
           'ball' : new defs.Subdivision_Sphere( 4 ),
-          'axis' : new defs.Axis_Arrows() };
+          'axis' : new defs.Axis_Arrows(),
+          'square': new defs.Square(),
+          'cube' : new defs.Cube() };
 
         // *** Materials: ***  A "material" used on individual shapes specifies all fields
         // that a Shader queries to light/color it properly.  Here we use a Phong shader.
@@ -39,6 +41,28 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.materials.plastic = { shader: phong, ambient: .2, diffusivity: 1, specularity: .5, color: color( .9,.5,.9,1 ) }
         this.materials.metal   = { shader: phong, ambient: .2, diffusivity: 1, specularity:  1, color: color( .9,.5,.9,1 ) }
         this.materials.rgb = { shader: tex_phong, ambient: .5, texture: new Texture( "assets/rgb.jpg" ) }
+        this.materials.wall = { shader: phong, ambient: .1, diffusivity: .5, specularity: 0, color: color( .9, .9, .9, 1) }
+        this.materials.table = {
+          shader: phong,
+          ambient: .2,
+          diffusivity: 0.7,
+          specularity: 0.1,
+          color: color(.8, .4, 0, 1)
+        };
+        this.materials.skybox = {
+          shader: phong,
+          ambient: .7,
+          diffusivity: 0,
+          specularity: 0,
+          color: color(0.68, .85, 1, 1)
+        }
+        this.materials.slat = {
+          shader: phong,
+          ambient: 0.2,
+          diffusivity: 1,
+          specularity: 1,
+          color: color(1, 1, 1, 1),
+        };
 
         this.ball_location = vec3(1, 1, 1);
         this.ball_radius = 0.25;
@@ -65,7 +89,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           // perspective() are field of view, aspect ratio, and distances to the near plane and far plane.
 
           // !!! Camera changed here
-          Shader.assign_camera( Mat4.look_at (vec3 (10, 10, 10), vec3 (0, 0, 0), vec3 (0, 1, 0)), this.uniforms );
+          Shader.assign_camera( Mat4.look_at(vec3(10, 2.65, 0), vec3(0, 2, 0), vec3(0, 1, 0)), this.uniforms);
         }
         this.uniforms.projection_transform = Mat4.perspective( Math.PI/4, caller.width/caller.height, 1, 100 );
 
@@ -76,16 +100,71 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // const light_position = Mat4.rotation( angle,   1,0,0 ).times( vec4( 0,-1,1,0 ) ); !!!
         // !!! Light changed here
-        const light_position = vec4(20 * Math.cos(angle), 20,  20 * Math.sin(angle), 1.0);
-        this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ) ];
+        const light_position = vec4(0, 10,  0, 1.0);
+        const room_light_position = vec4(12, 5, 0, 1.0);
+        this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ), defs.Phong_Shader.light_source( room_light_position, color(1, 1, 1, 1), 10) ];
 
         // draw axis arrows.
         this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
+
+        // Draw the wall
+        let right_wall_transform = Mat4.identity()
+          .times(Mat4.translation(7.75, 1, -1.75))
+          .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
+          .times(Mat4.scale(.9, 5, .1))
+        this.shapes.cube.draw(
+          caller,
+          this.uniforms,
+          right_wall_transform,
+          this.materials.wall
+        );
+
+        let left_wall_transform = Mat4.identity()
+          .times(Mat4.translation(7.75, 1, 1.75))
+          .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
+          .times(Mat4.scale(.9, 5, .1));
+        this.shapes.cube.draw(
+          caller,
+          this.uniforms,
+          left_wall_transform,
+          this.materials.wall
+        );
+
+        let bottom_wall_transform = Mat4.identity()
+          .times(Mat4.translation(7.75, 1, 0))
+          .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
+          .times(Mat4.scale(1, .95, .1));
+        this.shapes.cube.draw(
+          caller,
+          this.uniforms,
+          bottom_wall_transform,
+          this.materials.wall
+        );
+
+        // Draw the table
+        let table_transform = Mat4.identity()
+          .times(Mat4.translation(9, 2, 0))
+          .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
+          .times(Mat4.scale(1, 1, 1))
+        this.shapes.square.draw(
+          caller,
+          this.uniforms,
+          table_transform,
+          this.materials.table
+        )
+
+        // Draw the skybox
+        this.shapes.ball.draw(
+          caller, 
+          this.uniforms,
+          Mat4.identity().times(Mat4.scale(50, 50, 50)),
+          this.materials.skybox
+        )
       }
     }
 
 
-export class Part_one_hermite extends Part_one_hermite_base
+export class Ticket_Booth extends Part_one_hermite_base
 {                                                    // **Part_one_hermite** is a Scene object that can be added to any display canvas.
                                                      // This particular scene is broken up into two pieces for easier understanding.
                                                      // See the other piece, My_Demo_Base, if you need to see the setup code.
@@ -133,63 +212,30 @@ export class Part_one_hermite extends Part_one_hermite_base
     this.shapes.ball.draw( caller, this.uniforms, ball_transform, { ...this.materials.metal, color: blue } );
 
     // TODO: you should draw spline here.
+
+    // Draw the blinds
+    const top_slat_y = 4
+    let slat_distance_y = .1
+    let lowest_slat_y = 2.5
+
+    for (let y = top_slat_y; y >= lowest_slat_y; y -= slat_distance_y) {
+      let slat_transform = Mat4.identity()
+        .times(Mat4.translation(7.75, y, 0))
+        .times(Mat4.rotation(-(Math.PI * 2) / 3, 0, 0, 1))
+        .times(Mat4.scale(0.08, 0.002, 0.83));
+
+      this.shapes.cube.draw(
+        caller,
+        this.uniforms,
+        slat_transform,
+        this.materials.slat
+      );
+    }
   }
 
   render_controls()
   {                                 // render_controls(): Sets up a panel of interactive HTML elements, including
     // buttons with key bindings for affecting this scene, and live info readouts.
-    this.control_panel.innerHTML += "Part One:";
-    this.new_line();
-    this.key_triggered_button( "Parse Commands", [], this.parse_commands );
-    this.new_line();
-    this.key_triggered_button( "Draw", [], this.update_scene );
-    this.new_line();
-    this.key_triggered_button( "Load", [], this.load_spline );
-    this.new_line();
-    this.key_triggered_button( "Export", [], this.export_spline );
-    this.new_line();
-
-    /* Some code for your reference
-    this.key_triggered_button( "Copy input", [ "c" ], function() {
-      let text = document.getElementById("input").value;
-      console.log(text);
-      document.getElementById("output").value = text;
-    } );
-    this.new_line();
-    this.key_triggered_button( "Relocate", [ "r" ], function() {
-      let text = document.getElementById("input").value;
-      const words = text.split(' ');
-      if (words.length >= 3) {
-        const x = parseFloat(words[0]);
-        const y = parseFloat(words[1]);
-        const z = parseFloat(words[2]);
-        this.ball_location = vec3(x, y, z)
-        document.getElementById("output").value = "success";
-      }
-      else {
-        document.getElementById("output").value = "invalid input";
-      }
-    } );
-     */
-  }
-
-  parse_commands() {
-    document.getElementById("output").value = "parse_commands";
-    //TODO
-  }
-
-  update_scene() { // callback for Draw button
-    document.getElementById("output").value = "update_scene";
-    //TODO
-  }
-
-  load_spline() {
-    document.getElementById("output").value = "load_spline";
-    //TODO
-  }
-
-  export_spline() {
-    document.getElementById("output").value = "export_spline";
-    //TODO
+    this.control_panel.innerHTML += "Placeholder";
   }
 }

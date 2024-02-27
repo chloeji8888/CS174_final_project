@@ -28,9 +28,7 @@ import {Text_Demo}
 import {Transforms_Sandbox_Base, Transforms_Sandbox}
     from "./examples/transforms-sandbox.js";
 
-import {Part_one_hermite} from "./part_one_hermite.js";
-import {Part_two_spring} from "./part_two_spring.js";
-import {Part_three_chain} from "./part_three_chain.js";
+import {Ticket_Booth} from "./part_one_hermite.js";
 
 Object.assign (defs,
     {Minimal_Webgl_Demo},
@@ -43,17 +41,15 @@ Object.assign (defs,
     {Scene_To_Texture_Demo},
     {Text_Demo},
     {Transforms_Sandbox_Base, Transforms_Sandbox},
-    {Part_one_hermite},
-    {Part_two_spring},
-    {Part_three_chain}
+    {Ticket_Booth: Ticket_Booth},
 );
 
 // ******************** SELECT THE DEMO TO DISPLAY:
 
-let scenes = {1: Part_one_hermite, 2: Part_two_spring, 3: Part_three_chain};
+let scenes = {1: Ticket_Booth};
 const scene_selector = (i) => scenes[i];
 
-const main_scene        = Part_one_hermite; // default
+const main_scene        = Ticket_Booth; // default
 const additional_scenes = [];
 
 export {main_scene, scene_selector, additional_scenes, defs};
