@@ -27,7 +27,9 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         // Don't define more than one blueprint for the same thing here.
         this.shapes = { 'box'  : new defs.Cube(),
           'ball' : new defs.Subdivision_Sphere( 4 ),
-          'axis' : new defs.Axis_Arrows() };
+          'axis' : new defs.Axis_Arrows(),
+          'square': new defs.Square(),
+          'cube' : new defs.Cube() };
 
         // *** Materials: ***  A "material" used on individual shapes specifies all fields
         // that a Shader queries to light/color it properly.  Here we use a Phong shader.
@@ -39,6 +41,14 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.materials.plastic = { shader: phong, ambient: .2, diffusivity: 1, specularity: .5, color: color( .9,.5,.9,1 ) }
         this.materials.metal   = { shader: phong, ambient: .2, diffusivity: 1, specularity:  1, color: color( .9,.5,.9,1 ) }
         this.materials.rgb = { shader: tex_phong, ambient: .5, texture: new Texture( "assets/rgb.jpg" ) }
+        this.materials.black = { shader: phong, ambient: .1, diffusivity: .1, specularity: 0, color: color( 0, 0, 0) }
+        this.materials.table = {
+          shader: phong,
+          ambient: .2,
+          diffusivity: 0.7,
+          specularity: 0.1,
+          color: color(.8, .4, 0, 1)
+        };
 
         this.ball_location = vec3(1, 1, 1);
         this.ball_radius = 0.25;
@@ -65,7 +75,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           // perspective() are field of view, aspect ratio, and distances to the near plane and far plane.
 
           // !!! Camera changed here
-          Shader.assign_camera( Mat4.look_at(vec3(10, 2, 0), vec3(0, 2, 0), vec3(0, 1, 0)), this.uniforms);
+          Shader.assign_camera( Mat4.look_at(vec3(10, 2.65, 0), vec3(0, 2, 0), vec3(0, 1, 0)), this.uniforms);
         }
         this.uniforms.projection_transform = Mat4.perspective( Math.PI/4, caller.width/caller.height, 1, 100 );
 
@@ -76,11 +86,45 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // const light_position = Mat4.rotation( angle,   1,0,0 ).times( vec4( 0,-1,1,0 ) ); !!!
         // !!! Light changed here
-        const light_position = vec4(20 * Math.cos(angle), 20,  20 * Math.sin(angle), 1.0);
+        const light_position = vec4(0, 10,  0, 1.0);
         this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ) ];
 
         // draw axis arrows.
         this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
+
+        // Draw the wall
+        let right_wall_transform = Mat4.identity()
+          .times(Mat4.translation(8, 1, -1.75))
+          .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
+          .times(Mat4.scale(1, 5, 5))
+        this.shapes.square.draw(
+          caller,
+          this.uniforms,
+          right_wall_transform,
+          this.materials.black
+        );
+
+        let left_wall_transform = Mat4.identity()
+          .times(Mat4.translation(8, 1, 1.75))
+          .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
+          .times(Mat4.scale(1, 5, 5));
+        this.shapes.square.draw(
+          caller,
+          this.uniforms,
+          left_wall_transform,
+          this.materials.black
+        );
+
+        let table_transform = Mat4.identity()
+          .times(Mat4.translation(9, 2, 0))
+          .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
+          .times(Mat4.scale(1, 1, 1))
+        this.shapes.square.draw(
+          caller,
+          this.uniforms,
+          table_transform,
+          this.materials.table
+        )
       }
     }
 
