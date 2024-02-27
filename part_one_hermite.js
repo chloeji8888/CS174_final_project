@@ -65,7 +65,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           // perspective() are field of view, aspect ratio, and distances to the near plane and far plane.
 
           // !!! Camera changed here
-          Shader.assign_camera( Mat4.look_at (vec3 (10, 10, 10), vec3 (0, 0, 0), vec3 (0, 1, 0)), this.uniforms );
+          Shader.assign_camera( Mat4.look_at(vec3(10, 2, 0), vec3(0, 2, 0), vec3(0, 1, 0)), this.uniforms);
         }
         this.uniforms.projection_transform = Mat4.perspective( Math.PI/4, caller.width/caller.height, 1, 100 );
 
