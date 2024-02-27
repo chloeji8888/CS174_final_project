@@ -41,13 +41,27 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.materials.plastic = { shader: phong, ambient: .2, diffusivity: 1, specularity: .5, color: color( .9,.5,.9,1 ) }
         this.materials.metal   = { shader: phong, ambient: .2, diffusivity: 1, specularity:  1, color: color( .9,.5,.9,1 ) }
         this.materials.rgb = { shader: tex_phong, ambient: .5, texture: new Texture( "assets/rgb.jpg" ) }
-        this.materials.black = { shader: phong, ambient: .1, diffusivity: .1, specularity: 0, color: color( 0, 0, 0) }
+        this.materials.wall = { shader: phong, ambient: .1, diffusivity: .5, specularity: 0, color: color( .9, .9, .9, 1) }
         this.materials.table = {
           shader: phong,
           ambient: .2,
           diffusivity: 0.7,
           specularity: 0.1,
           color: color(.8, .4, 0, 1)
+        };
+        this.materials.skybox = {
+          shader: phong,
+          ambient: .7,
+          diffusivity: 0,
+          specularity: 0,
+          color: color(0.68, .85, 1, 1)
+        }
+        this.materials.slat = {
+          shader: phong,
+          ambient: 0.2,
+          diffusivity: 1,
+          specularity: 1,
+          color: color(1, 1, 1, 1),
         };
 
         this.ball_location = vec3(1, 1, 1);
@@ -87,34 +101,47 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         // const light_position = Mat4.rotation( angle,   1,0,0 ).times( vec4( 0,-1,1,0 ) ); !!!
         // !!! Light changed here
         const light_position = vec4(0, 10,  0, 1.0);
-        this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ) ];
+        const room_light_position = vec4(12, 5, 0, 1.0);
+        this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ), defs.Phong_Shader.light_source( room_light_position, color(1, 1, 1, 1), 10) ];
 
         // draw axis arrows.
         this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
 
         // Draw the wall
         let right_wall_transform = Mat4.identity()
-          .times(Mat4.translation(8, 1, -1.75))
+          .times(Mat4.translation(7.75, 1, -1.75))
           .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
-          .times(Mat4.scale(1, 5, 5))
-        this.shapes.square.draw(
+          .times(Mat4.scale(.9, 5, .1))
+        this.shapes.cube.draw(
           caller,
           this.uniforms,
           right_wall_transform,
-          this.materials.black
+          this.materials.wall
         );
 
         let left_wall_transform = Mat4.identity()
-          .times(Mat4.translation(8, 1, 1.75))
+          .times(Mat4.translation(7.75, 1, 1.75))
           .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
-          .times(Mat4.scale(1, 5, 5));
-        this.shapes.square.draw(
+          .times(Mat4.scale(.9, 5, .1));
+        this.shapes.cube.draw(
           caller,
           this.uniforms,
           left_wall_transform,
-          this.materials.black
+          this.materials.wall
         );
 
+        let bottom_wall_transform = Mat4.identity()
+          .times(Mat4.translation(7.75, 1, 0))
+          .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
+          .times(Mat4.scale(1, .95, .1));
+        this.shapes.cube.draw(
+          caller,
+          this.uniforms,
+          bottom_wall_transform,
+          this.materials.wall
+        );
+
+        // Draw the table
         let table_transform = Mat4.identity()
           .times(Mat4.translation(9, 2, 0))
           .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
@@ -124,6 +151,14 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           this.uniforms,
           table_transform,
           this.materials.table
+        )
+
+        // Draw the skybox
+        this.shapes.ball.draw(
+          caller, 
+          this.uniforms,
+          Mat4.identity().times(Mat4.scale(50, 50, 50)),
+          this.materials.skybox
         )
       }
     }
@@ -177,6 +212,25 @@ export class Part_one_hermite extends Part_one_hermite_base
     this.shapes.ball.draw( caller, this.uniforms, ball_transform, { ...this.materials.metal, color: blue } );
 
     // TODO: you should draw spline here.
+
+    // Draw the blinds
+    const top_slat_y = 4
+    let slat_distance_y = .1
+    let lowest_slat_y = 2.5
+
+    for (let y = top_slat_y; y >= lowest_slat_y; y -= slat_distance_y) {
+      let slat_transform = Mat4.identity()
+        .times(Mat4.translation(7.75, y, 0))
+        .times(Mat4.rotation(-(Math.PI * 2) / 3, 0, 0, 1))
+        .times(Mat4.scale(0.08, 0.002, 0.83));
+
+      this.shapes.cube.draw(
+        caller,
+        this.uniforms,
+        slat_transform,
+        this.materials.slat
+      );
+    }
   }
 
   render_controls()
