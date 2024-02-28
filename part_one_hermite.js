@@ -1,4 +1,5 @@
 import {tiny, defs} from './examples/common.js';
+import {WindChime} from './components/WindChime.js'
 
 // Pull these names into this module's scope for convenience:
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
@@ -70,6 +71,8 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.ball_radius = 0.25;
 
         // TODO: you should create a Spline class instance
+        this.windchime = new WindChime();
+        this.windchime.position = vec3(0, 5, 0);
       }
 
       render_animation( caller )
@@ -164,6 +167,9 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         )
 
         this.shapes.test.draw(caller, this.uniforms, Mat4.identity().times(Mat4.translation(0, 3, 0)).times(Mat4.scale(.2, .2, .2)), this.materials.rgb)
+
+        // TODO WindChime trial
+        this.windchime.draw(caller, this.uniforms);
       }
     }
 
