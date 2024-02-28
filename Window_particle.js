@@ -123,7 +123,8 @@ update(times_pairwise) {
 
 // Method to apply a temporary pulling force to the last particle
 applyPullingForce() {
-    const pullingForceMagnitude = -30; // Set the magnitude of the pulling force
+
+    const pullingForceMagnitude = -4000; // Set the magnitude of the pulling force
     const pullingForce = vec3(0, pullingForceMagnitude, 0); // Pulling down
     const lastParticleIndex = this.particles.length - 1; // Apply to the last particle
     this.particles[lastParticleIndex].applyForce(pullingForce);
