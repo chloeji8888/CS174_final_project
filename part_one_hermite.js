@@ -1,4 +1,5 @@
 import {tiny, defs} from './examples/common.js';
+import { Window_Spring } from './Window_particle.js';
 
 // Pull these names into this module's scope for convenience:
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
@@ -65,9 +66,17 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         };
 
         this.ball_location = vec3(1, 1, 1);
-        this.ball_radius = 0.25;
+        this.ball_radius = 0.05;
+
+        this.Window_Spring = new Window_Spring();
+
+        this.Window_Spring.create(8, 0.2, 5000, 100);
 
         // TODO: you should create a Spline class instance
+      }
+        constructor(){
+        super();
+        this.t_sim = 0; 
       }
 
       render_animation( caller )
@@ -160,6 +169,31 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           Mat4.identity().times(Mat4.scale(50, 50, 50)),
           this.materials.skybox
         )
+
+     
+        // Calculate the time step based on the frame rate
+        const frameRate = 60; // Target frame rate
+        let dt = 1.0 / frameRate; // Time step for display updates
+
+        // Clamp dt to a maximum value to prevent instability (1/30 is suggested in your feedback)
+        dt = Math.min(1.0 / 30, dt);
+
+        
+        // Calculate the next simulation time
+        const t_next = this.t_sim + dt;
+        
+
+        // Use a smaller time step for the simulation updates to maintain stability
+        const t_step = 1 / 1000; // A smaller time step for the simulation (e.g., 1 millisecond)
+
+        // Update the simulation in steps until reaching the next display time
+        for (; this.t_sim <= t_next; this.t_sim += t_step) {
+          this.Window_Spring.update(t_step)
+        }
+
+        this.Window_Spring.draw(caller, this.uniforms, this.shapes, this.materials);
+
+
       }
     }
 
@@ -235,7 +269,14 @@ export class Ticket_Booth extends Part_one_hermite_base
 
   render_controls()
   {                                 // render_controls(): Sets up a panel of interactive HTML elements, including
-    // buttons with key bindings for affecting this scene, and live info readouts.
-    this.control_panel.innerHTML += "Placeholder";
+
+    this.key_triggered_button( "Pull the strip", [], this.pullStrip);
+    
+  }
+
+  pullStrip() {
+    // Trigger the pulling force
+    this.Window_Spring.applyPullingForce();
+    
   }
 }
