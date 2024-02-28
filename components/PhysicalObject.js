@@ -1,5 +1,5 @@
 import { tiny, defs } from '../examples/common.js'
-const { vec3 } = tiny;
+const { vec3, Shape, Mat4 } = tiny;
 
 /** 
  * @classdesc Base class representing objects that follow physical rules 
@@ -22,6 +22,9 @@ class PhysicalObject {
     this.force = vec3(0, 0, 0);
     this.acceleration = vec3(0, 0, 0);
     this.prevPosition = position;
+
+    /** Draw properties */
+    this.shape = new defs.Cube();   // Default shape is a cube
   }
 
   /** Update motion properties */
@@ -85,5 +88,13 @@ class PhysicalObject {
     }
 
     this.force = vec3(0, 0, 0); // Clear force
+  }
+
+  /** Drawing */
+  draw(webgl_manager, uniforms, transform, material) {
+    if (this.shape === null) return;
+    
+    let absolute_transform = transform.times(Mat4.translation(this.position))
+    this.shape.draw(webgl_manager, uniforms, absolute_transform, material);
   }
 }

@@ -29,7 +29,9 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           'ball' : new defs.Subdivision_Sphere( 4 ),
           'axis' : new defs.Axis_Arrows(),
           'square': new defs.Square(),
-          'cube' : new defs.Cube() };
+          'cube' : new defs.Cube(),
+          'test' : new defs.Subdivision_Sphere(4)
+        };
 
         // *** Materials: ***  A "material" used on individual shapes specifies all fields
         // that a Shader queries to light/color it properly.  Here we use a Phong shader.
@@ -160,6 +162,8 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           Mat4.identity().times(Mat4.scale(50, 50, 50)),
           this.materials.skybox
         )
+
+        this.shapes.test.draw(caller, this.uniforms, Mat4.identity().times(Mat4.translation(0, 3, 0)).times(Mat4.scale(.2, .2, .2)), this.materials.rgb)
       }
     }
 
