@@ -26,6 +26,18 @@ export class PhysicalSystem {
     }
   }
 
+  // Dump is aligned with actual display, instead of simulation
+  //  for 60 FPS, this is called every 1/60 seconds.
+  dump(current, elapse, dt_step = this.dt) {
+    dt_step = Math.min(elapse, dt_step);
+
+    let target_time = current + elapse;
+
+    for (; current <= target_time; current += dt_step) {
+      this.update(dt_step);
+    }
+  }
+
   /** Drawing Utilities */
 
   // Set scale of this system
@@ -39,4 +51,10 @@ export class PhysicalSystem {
   }
 
   draw(webgl_manager, uniforms) {}
+
+
+  /** Mechanics-related Helper Methods */
+  get_elastic_force() {
+
+  }
 }

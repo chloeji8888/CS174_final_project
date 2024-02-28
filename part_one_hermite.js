@@ -72,7 +72,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // TODO: you should create a Spline class instance
         this.windchime = new WindChime();
-        this.windchime.position = vec3(0, 5, 0);
+        this.windchime.position = vec3(8, 2.7, -1.2);
       }
 
       render_animation( caller )
@@ -241,6 +241,9 @@ export class Ticket_Booth extends Part_one_hermite_base
         this.materials.slat
       );
     }
+
+    // Update physical system
+    this.windchime.dump(t, 1/60);
   }
 
   render_controls()

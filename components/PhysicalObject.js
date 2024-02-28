@@ -34,7 +34,7 @@ export class PhysicalObject {
   }
 
   apply_gravity(g=this.physicalSystem.gravity) {
-    this.force.add_by(vec3(0, -g, 0).scale_by(this.mass));
+    this.force.add_by(vec3(0, -g, 0).times(this.mass));
   }
 
   _update_acceleration() {
