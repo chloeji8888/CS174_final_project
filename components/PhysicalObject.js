@@ -4,7 +4,7 @@ const { vec3, Shape, Mat4 } = tiny;
 /** 
  * @classdesc Base class representing objects that follow physical rules 
  */
-class PhysicalObject {
+export class PhysicalObject {
   constructor(
     physicalSystem,
     mass = 1,
@@ -25,6 +25,7 @@ class PhysicalObject {
 
     /** Draw properties */
     this.shape = new defs.Cube();   // Default shape is a cube
+    this.scale = Mat4.scale(1, 1, 1);
   }
 
   /** Update motion properties */
@@ -90,11 +91,27 @@ class PhysicalObject {
     this.force = vec3(0, 0, 0); // Clear force
   }
 
-  /** Drawing */
-  draw(webgl_manager, uniforms, transform, material) {
+  /** Drawing Utilities */
+
+  // Set scale of this object
+  set_scale(scale_x, scale_y, scale_z) {
+    this.scale = Mat4.scale(scale_x, scale_y, scale_z);
+  }
+
+  // Convert a Vector3 to Matrix4
+  get_transform(position) {
+    return Mat4.translation(position[0], position[1], position[2]);
+  }
+
+  draw(webgl_manager, uniforms, base_transform, material) {
     if (this.shape === null) return;
-    
-    let absolute_transform = transform.times(Mat4.translation(this.position))
+
+    let absolute_transform = base_transform
+        .times(this.get_transform(this.position))
+        .times(this.scale);
+
+    console.log("Shape", this.shape, "drawn at", absolute_transform);
+
     this.shape.draw(webgl_manager, uniforms, absolute_transform, material);
   }
 }
