@@ -26,6 +26,7 @@ export class PhysicalObject {
     /** Draw properties */
     this.shape = new defs.Cube();   // Default shape is a cube
     this.scale = Mat4.scale(1, 1, 1);
+    this.rotation = Mat4.rotation(0, 0, 1, 0);
   }
 
   /** Update motion properties */
@@ -108,9 +109,8 @@ export class PhysicalObject {
 
     let absolute_transform = base_transform
         .times(this.get_transform(this.position))
+        .times(this.rotation)
         .times(this.scale);
-
-    console.log("Shape", this.shape, "drawn at", absolute_transform);
 
     this.shape.draw(webgl_manager, uniforms, absolute_transform, material);
   }

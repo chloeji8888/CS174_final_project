@@ -105,9 +105,9 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // const light_position = Mat4.rotation( angle,   1,0,0 ).times( vec4( 0,-1,1,0 ) ); !!!
         // !!! Light changed here
-        const light_position = vec4(0, 10,  0, 1.0);
+        const light_position = vec4(-10, 10,  0, 1.0);
         const room_light_position = vec4(12, 5, 0, 1.0);
-        this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ), defs.Phong_Shader.light_source( room_light_position, color(1, 1, 1, 1), 10) ];
+        this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ), defs.Phong_Shader.light_source( room_light_position, color(1, 1, 1, 1), 1) ];
 
         // draw axis arrows.
         this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
@@ -145,6 +145,17 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           bottom_wall_transform,
           this.materials.wall
         );
+
+        let top_wall_transform = Mat4.identity()
+          .times(Mat4.translation(12.75, 4, 0))
+          .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
+          .times(Mat4.scale(5, 5, .1));
+        this.shapes.cube.draw(
+          caller,
+          this.uniforms,
+          top_wall_transform,
+          this.materials.wall
+        )
 
         // Draw the table
         let table_transform = Mat4.identity()
