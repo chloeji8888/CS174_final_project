@@ -71,13 +71,21 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.ball_location = vec3(1, 1, 1);
         this.ball_radius = 0.05;
 
-        this.Window_Spring = new Window_Spring();
+        this.pull_up_spring = new Window_Spring();
+        this.pull_up = this.pull_up_spring.create(.8, 8, 0.2, 5000, 100);
 
-        this.Window_Spring.create(8, 0.2, 5000, 100);
+        this.pull_down_spring = new Window_Spring();
+        this.pull_down = this.pull_down_spring.create(.9, 8, .2, 5000, 100); 
+
+        // Pulling springs control
+        this.pulled_up_string_t = 0;
+        this.pulled_down_string_t = 0;
 
         // TODO: you should create a Spline class instance
         this.windchime = new WindChime();
         this.windchime.position = vec3(8, 2.7, -1.2);
+
+
       }
         constructor(){
         super();
@@ -205,10 +213,12 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // Update the simulation in steps until reaching the next display time
         for (; this.t_sim <= t_next; this.t_sim += t_step) {
-          this.Window_Spring.update(t_step)
+          this.pull_up_spring.update(t_step)
+          this.pull_down_spring.update(t_step)
         }
 
-        this.Window_Spring.draw(caller, this.uniforms, this.shapes, this.materials);
+        this.pull_up_spring.draw(caller, this.uniforms, this.shapes, this.materials);
+        this.pull_down_spring.draw(caller, this.uniforms, this.shapes, this.materials)
 
         // TODO WindChime trial
         this.windchime.draw(caller, this.uniforms);
@@ -223,6 +233,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.top_slat_y = 4;
     this.lowest_slat_y = 2.5;
     this.slat_distance_y = 0.1;
+    this.num_slats = 20;
     // Other initialization code as necessary
   }
 
@@ -266,14 +277,23 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.shapes.ball.draw( caller, this.uniforms, ball_transform, { ...this.materials.metal, color: blue } );
 
     // TODO: you should draw spline here.
+    // slowly increase lowest_slat_y
+    if (this.pulled_up_string_t >= 0) {
+      this.lowest_slat_y += 0.001 * this.pulled_up_string_t;
+      this.pulled_up_string_t -= .15;
+    }
 
-    
+    if (this.pulled_down_string_t >= 0) {
+      this.lowest_slat_y -= 0.001 * this.pulled_down_string_t;
+      this.pulled_down_string_t -= .15;
+    }
 
-    for (let y = this.top_slat_y; y >= this.lowest_slat_y; y -= this.slat_distance_y) {
+    const temp = (this.top_slat_y - this.lowest_slat_y) / this.num_slats;
+    for (let i = 0; i < this.num_slats; i++) {
       let slat_transform = Mat4.identity()
-        .times(Mat4.translation(7.75, y, 0))
+        .times(Mat4.translation(7.75, this.top_slat_y - i * temp , 0))
         .times(Mat4.rotation(-(Math.PI * 2) / 3, 0, 0, 1))
-        .times(Mat4.scale(0.08, 0.002, 0.83));
+        .times(Mat4.scale(0.07, 0.002, 0.83));
 
       this.shapes.cube.draw(
         caller,
@@ -292,21 +312,27 @@ export class Ticket_Booth extends Part_one_hermite_base{
 
   render_controls()
   {                                 // render_controls(): Sets up a panel of interactive HTML elements, including  
-
-    this.key_triggered_button( "Pull the strip", [], this.pullStrip);
+    this.key_triggered_button("Pull the down-strip", ["N"], this.pullDownStrip);
+    this.key_triggered_button( "Pull the up-strip", ['M'], this.pullUpStrip);
     
   }
 
-  pullStrip() {
+  pullUpStrip() {
     // Trigger the pulling force
     // Adjust the position of the lowest slat
-  this.lowest_slat_y += 0.1; // Change this value as needed for the desired speed
+    if (this.lowest_slat_y <= this.top_slat_y - .5) {
+      // this.lowest_slat_y += .1;
+      this.pulled_up_string_t = 5;
+    }
 
-  // Ensure the new position does not exceed the top position
-  if (this.lowest_slat_y > this.top_slat_y) {
-    this.lowest_slat_y = this.top_slat_y;
+    this.pull_up_spring.applyPullingForce();   
   }
-    this.Window_Spring.applyPullingForce();
-    
+
+  pullDownStrip() {
+    if (this.lowest_slat_y >= 1.99) {
+      this.pulled_down_string_t = 5;
+    }
+
+    this.pull_down_spring.applyPullingForce();
   }
 }

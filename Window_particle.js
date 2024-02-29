@@ -29,12 +29,27 @@ const Window_Spring =
     }
   }
 
-  create(numParticles,particleDistance,ks, kd){
+  create(x, numParticles,particleDistance,ks, kd){
+    this.z = x;
+
+    // Equalibrium states from simulation
+    let positions = [
+      vec3(8, 4, x),
+      vec3(8, 3.786, x),
+      vec3(8, 3.575, x),
+      vec3(8, 3.365, x),
+      vec3(8, 3.157, x),
+      vec3(8, 2.951, x),
+      vec3(8, 2.747, x),
+      vec3(8, 2.545, x),
+    ];
+
     for (let i = 0; i < numParticles; i++) {
-        const position = vec3(8.0, (20.0-i) * particleDistance, 0.8); // Start from (0.0, 5.0, 0.0) and place them along the x-axis
+        const position = positions[i]; // Start from (0.0, 5.0, 0.0) and place them along the x-axis
         const particle = new Particle(1, position); // Assuming mass of 1 for all particles
         this.particles.push(particle);
     }
+
     // Link particles with springs
     for (let i = 0; i < numParticles - 1; i++) {
         const spring = new Spring(this.particles[i], this.particles[i + 1], ks, kd, particleDistance);
@@ -91,7 +106,7 @@ const Window_Spring =
 update(times_pairwise) {
     // Fix the first particle's position
     const mu_k = 0.9;
-    this.particles[0].position = vec3(8, 4, 0.8); // Set to desired fixed position
+    this.particles[0].position = vec3(8, 4, this.z); // Set to desired fixed position
     this.particles[0].velocity = vec3(0, 0, 0); // Ensure it does not move
     // this.particles[0].force = vec3(0, 0, 0); // No force applied
 
@@ -152,7 +167,7 @@ resetPulling() {
         const blueColor = color(0, 0, 0, 1); // Example: Define blue using your color function
         shapes.ball.draw(webgl_manager, uniforms, ball_transform, { ...materials.metal, color: blueColor });
     }
-   for (const s of this.springs) {
+    for (const s of this.springs) {
       const p1 = s.particle1.position;
       const p2 = s.particle2.position;
       const springVector = p2.minus(p1);
@@ -179,7 +194,7 @@ resetPulling() {
 
         shapes.box.draw(webgl_manager, uniforms, model_trans, { ...materials.plastic, color: red });
       }
-  }
+    }
 
   }
 
