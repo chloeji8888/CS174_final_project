@@ -198,14 +198,16 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
     }
 
 
-export class Ticket_Booth extends Part_one_hermite_base
-{                                                    // **Part_one_hermite** is a Scene object that can be added to any display canvas.
-                                                     // This particular scene is broken up into two pieces for easier understanding.
-                                                     // See the other piece, My_Demo_Base, if you need to see the setup code.
-                                                     // The piece here exposes only the display() method, which actually places and draws
-                                                     // the shapes.  We isolate that code so it can be experimented with on its own.
-                                                     // This gives you a very small code sandbox for editing a simple scene, and for
-                                                     // experimenting with matrix transformations.
+export class Ticket_Booth extends Part_one_hermite_base{   
+  constructor() {
+    // Initialize properties
+    super();
+    this.top_slat_y = 4;
+    this.lowest_slat_y = 2.5;
+    this.slat_distance_y = 0.1;
+    // Other initialization code as necessary
+  }
+
   render_animation( caller )
   {                                                // display():  Called once per frame of animation.  For each shape that you want to
     // appear onscreen, place a .draw() call for it inside.  Each time, pass in a
@@ -247,12 +249,9 @@ export class Ticket_Booth extends Part_one_hermite_base
 
     // TODO: you should draw spline here.
 
-    // Draw the blinds
-    const top_slat_y = 4
-    let slat_distance_y = .1
-    let lowest_slat_y = 2.5
+    
 
-    for (let y = top_slat_y; y >= lowest_slat_y; y -= slat_distance_y) {
+    for (let y = this.top_slat_y; y >= this.lowest_slat_y; y -= this.slat_distance_y) {
       let slat_transform = Mat4.identity()
         .times(Mat4.translation(7.75, y, 0))
         .times(Mat4.rotation(-(Math.PI * 2) / 3, 0, 0, 1))
@@ -268,7 +267,7 @@ export class Ticket_Booth extends Part_one_hermite_base
   }
 
   render_controls()
-  {                                 // render_controls(): Sets up a panel of interactive HTML elements, including
+  {                                 // render_controls(): Sets up a panel of interactive HTML elements, including  
 
     this.key_triggered_button( "Pull the strip", [], this.pullStrip);
     
@@ -276,6 +275,13 @@ export class Ticket_Booth extends Part_one_hermite_base
 
   pullStrip() {
     // Trigger the pulling force
+    // Adjust the position of the lowest slat
+  this.lowest_slat_y += 0.1; // Change this value as needed for the desired speed
+
+  // Ensure the new position does not exceed the top position
+  if (this.lowest_slat_y > this.top_slat_y) {
+    this.lowest_slat_y = this.top_slat_y;
+  }
     this.Window_Spring.applyPullingForce();
     
   }
