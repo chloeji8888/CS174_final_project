@@ -1,5 +1,6 @@
 import {tiny, defs} from './examples/common.js';
 import { Window_Spring } from './Window_particle.js';
+import {WindChime} from './components/WindChime.js'
 
 // Pull these names into this module's scope for convenience:
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
@@ -30,7 +31,9 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           'ball' : new defs.Subdivision_Sphere( 4 ),
           'axis' : new defs.Axis_Arrows(),
           'square': new defs.Square(),
-          'cube' : new defs.Cube() };
+          'cube' : new defs.Cube(),
+          'test' : new defs.Subdivision_Sphere(4)
+        };
 
         // *** Materials: ***  A "material" used on individual shapes specifies all fields
         // that a Shader queries to light/color it properly.  Here we use a Phong shader.
@@ -73,6 +76,8 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.Window_Spring.create(8, 0.2, 5000, 100);
 
         // TODO: you should create a Spline class instance
+        this.windchime = new WindChime();
+        this.windchime.position = vec3(8, 2.7, -1.2);
       }
         constructor(){
         super();
@@ -109,7 +114,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // const light_position = Mat4.rotation( angle,   1,0,0 ).times( vec4( 0,-1,1,0 ) ); !!!
         // !!! Light changed here
-        const light_position = vec4(0, 10,  0, 1.0);
+        const light_position = vec4(-10, 10,  0, 1.0);
         const room_light_position = vec4(12, 5, 0, 1.0);
         this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ), defs.Phong_Shader.light_source( room_light_position, color(1, 1, 1, 1), 10) ];
 
@@ -150,6 +155,17 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           this.materials.wall
         );
 
+        let top_wall_transform = Mat4.identity()
+          .times(Mat4.translation(7.75, 4, 0))
+          .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
+          .times(Mat4.scale(1, 1, .1));
+        this.shapes.cube.draw(
+          caller,
+          this.uniforms,
+          top_wall_transform,
+          this.materials.wall
+        )
+
         // Draw the table
         let table_transform = Mat4.identity()
           .times(Mat4.translation(9, 2, 0))
@@ -170,7 +186,8 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           this.materials.skybox
         )
 
-     
+        // Draw window strips
+        
         // Calculate the time step based on the frame rate
         const frameRate = 60; // Target frame rate
         let dt = 1.0 / frameRate; // Time step for display updates
@@ -193,7 +210,8 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         this.Window_Spring.draw(caller, this.uniforms, this.shapes, this.materials);
 
-
+        // TODO WindChime trial
+        this.windchime.draw(caller, this.uniforms);
       }
     }
 
@@ -264,6 +282,12 @@ export class Ticket_Booth extends Part_one_hermite_base{
         this.materials.slat
       );
     }
+    
+    // Update Physics and Drawing
+    
+
+    // Update physical system
+    this.windchime.dump(t, 1/60);
   }
 
   render_controls()
