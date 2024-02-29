@@ -1,4 +1,5 @@
 import {tiny, defs} from './examples/common.js';
+import { Window_Spring } from './Window_particle.js';
 import {WindChime} from './components/WindChime.js'
 
 // Pull these names into this module's scope for convenience:
@@ -68,11 +69,19 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         };
 
         this.ball_location = vec3(1, 1, 1);
-        this.ball_radius = 0.25;
+        this.ball_radius = 0.05;
+
+        this.Window_Spring = new Window_Spring();
+
+        this.Window_Spring.create(8, 0.2, 5000, 100);
 
         // TODO: you should create a Spline class instance
         this.windchime = new WindChime();
         this.windchime.position = vec3(8, 2.7, -1.2);
+      }
+        constructor(){
+        super();
+        this.t_sim = 0; 
       }
 
       render_animation( caller )
@@ -177,7 +186,29 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           this.materials.skybox
         )
 
-        this.shapes.test.draw(caller, this.uniforms, Mat4.identity().times(Mat4.translation(0, 3, 0)).times(Mat4.scale(.2, .2, .2)), this.materials.rgb)
+        // Draw window strips
+        
+        // Calculate the time step based on the frame rate
+        const frameRate = 60; // Target frame rate
+        let dt = 1.0 / frameRate; // Time step for display updates
+
+        // Clamp dt to a maximum value to prevent instability (1/30 is suggested in your feedback)
+        dt = Math.min(1.0 / 30, dt);
+
+        
+        // Calculate the next simulation time
+        const t_next = this.t_sim + dt;
+        
+
+        // Use a smaller time step for the simulation updates to maintain stability
+        const t_step = 1 / 1000; // A smaller time step for the simulation (e.g., 1 millisecond)
+
+        // Update the simulation in steps until reaching the next display time
+        for (; this.t_sim <= t_next; this.t_sim += t_step) {
+          this.Window_Spring.update(t_step)
+        }
+
+        this.Window_Spring.draw(caller, this.uniforms, this.shapes, this.materials);
 
         // TODO WindChime trial
         this.windchime.draw(caller, this.uniforms);
@@ -185,14 +216,16 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
     }
 
 
-export class Ticket_Booth extends Part_one_hermite_base
-{                                                    // **Part_one_hermite** is a Scene object that can be added to any display canvas.
-                                                     // This particular scene is broken up into two pieces for easier understanding.
-                                                     // See the other piece, My_Demo_Base, if you need to see the setup code.
-                                                     // The piece here exposes only the display() method, which actually places and draws
-                                                     // the shapes.  We isolate that code so it can be experimented with on its own.
-                                                     // This gives you a very small code sandbox for editing a simple scene, and for
-                                                     // experimenting with matrix transformations.
+export class Ticket_Booth extends Part_one_hermite_base{   
+  constructor() {
+    // Initialize properties
+    super();
+    this.top_slat_y = 4;
+    this.lowest_slat_y = 2.5;
+    this.slat_distance_y = 0.1;
+    // Other initialization code as necessary
+  }
+
   render_animation( caller )
   {                                                // display():  Called once per frame of animation.  For each shape that you want to
     // appear onscreen, place a .draw() call for it inside.  Each time, pass in a
@@ -234,12 +267,9 @@ export class Ticket_Booth extends Part_one_hermite_base
 
     // TODO: you should draw spline here.
 
-    // Draw the blinds
-    const top_slat_y = 4
-    let slat_distance_y = .1
-    let lowest_slat_y = 2.5
+    
 
-    for (let y = top_slat_y; y >= lowest_slat_y; y -= slat_distance_y) {
+    for (let y = this.top_slat_y; y >= this.lowest_slat_y; y -= this.slat_distance_y) {
       let slat_transform = Mat4.identity()
         .times(Mat4.translation(7.75, y, 0))
         .times(Mat4.rotation(-(Math.PI * 2) / 3, 0, 0, 1))
@@ -252,14 +282,31 @@ export class Ticket_Booth extends Part_one_hermite_base
         this.materials.slat
       );
     }
+    
+    // Update Physics and Drawing
+    
 
     // Update physical system
     this.windchime.dump(t, 1/60);
   }
 
   render_controls()
-  {                                 // render_controls(): Sets up a panel of interactive HTML elements, including
-    // buttons with key bindings for affecting this scene, and live info readouts.
-    this.control_panel.innerHTML += "Placeholder";
+  {                                 // render_controls(): Sets up a panel of interactive HTML elements, including  
+
+    this.key_triggered_button( "Pull the strip", [], this.pullStrip);
+    
+  }
+
+  pullStrip() {
+    // Trigger the pulling force
+    // Adjust the position of the lowest slat
+  this.lowest_slat_y += 0.1; // Change this value as needed for the desired speed
+
+  // Ensure the new position does not exceed the top position
+  if (this.lowest_slat_y > this.top_slat_y) {
+    this.lowest_slat_y = this.top_slat_y;
+  }
+    this.Window_Spring.applyPullingForce();
+    
   }
 }
