@@ -70,6 +70,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           diffusivity: 0,
           specularity: 0,
           color: color(0.68, .85, 1, 1)
+          // color: color(.5, 0, 0, 1)
         }
         this.materials.slat = {
           shader: phong,
