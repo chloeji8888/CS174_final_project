@@ -17,7 +17,7 @@ export class WindChime extends PhysicalSystem {
         // Material
         this.material = {
           shader: new defs.Phong_Shader(),
-          ambient: .7,
+          ambient: .2,
           diffusivity: 0.5,
           color: color(0.92, 0.92, 0.92, 1),
           
@@ -25,8 +25,8 @@ export class WindChime extends PhysicalSystem {
 
         this.material_bookmark = {
           shader: new defs.Phong_Shader(),
-          ambient: 0.4,
-          diffusivity: 0.7,
+          ambient: 0.1,
+          diffusivity: 1,
           color: color(1, 0, 0, 1),
           // texture: new Texture("../assets/bookmark.png")
         };
