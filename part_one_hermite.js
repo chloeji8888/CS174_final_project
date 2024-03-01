@@ -1,5 +1,6 @@
 import {tiny, defs} from './examples/common.js';
 import { Window_Spring } from './Window_particle.js';
+import { NewtonCradle } from './newtoncradle.js';
 import {WindChime} from './components/WindChime.js'
 
 // Pull these names into this module's scope for convenience:
@@ -83,6 +84,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // TODO: you should create a Spline class instance
         this.windchime = new WindChime();
+        this.newtoncradle = new NewtonCradle(5, 0.01, 0.05, vec3(8.5,2.2,0), 0.15)
         this.windchime.position = vec3(8, 2.7, -1.2);
 
 
@@ -195,6 +197,10 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         )
 
         // Draw window strips
+
+
+        // Draw Newton's cradle
+        this.newtoncradle.draw(caller, this.uniforms, this.shapes, this.materials);
         
         // Calculate the time step based on the frame rate
         const frameRate = 60; // Target frame rate
@@ -215,6 +221,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         for (; this.t_sim <= t_next; this.t_sim += t_step) {
           this.pull_up_spring.update(t_step)
           this.pull_down_spring.update(t_step)
+          this.newtoncradle.update(t_step)
         }
 
         this.pull_up_spring.draw(caller, this.uniforms, this.shapes, this.materials);
@@ -222,6 +229,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // TODO WindChime trial
         this.windchime.draw(caller, this.uniforms);
+
       }
     }
 
@@ -308,13 +316,19 @@ export class Ticket_Booth extends Part_one_hermite_base{
 
     // Update physical system
     this.windchime.dump(t, 1/60);
+
   }
 
   render_controls()
   {                                 // render_controls(): Sets up a panel of interactive HTML elements, including  
     this.key_triggered_button("Pull the down-strip", ["N"], this.pullDownStrip);
     this.key_triggered_button( "Pull the up-strip", ['M'], this.pullUpStrip);
+    this.key_triggered_button("Start Newton's cradle", ['L'], () => this.liftFirstSphere());
     
+  }
+
+  liftFirstSphere() {
+    this.newtoncradle.startCradle();
   }
 
   pullUpStrip() {
