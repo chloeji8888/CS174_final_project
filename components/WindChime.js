@@ -24,11 +24,11 @@ export class WindChime extends PhysicalSystem {
         };
 
         this.material_bookmark = {
-          shader: new defs.Textured_Phong(),
+          shader: new defs.Phong_Shader(),
           ambient: 0.4,
           diffusivity: 0.7,
-        //   color: color(1, 0, 0, 1),
-          texture: new Texture("../assets/rgb.jpg")
+          color: color(1, 0, 0, 1),
+          // texture: new Texture("../assets/bookmark.png")
         };
 
         // Initialize BellShape
