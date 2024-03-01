@@ -36,7 +36,8 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           'test' : new defs.Subdivision_Sphere(4),
           'tree' : new Shape_From_File('./assets/Lowpoly_tree_sample.obj'),
           'bench': new Shape_From_File('./assets/Bench_HighRes.obj'),
-          'teapot': new Shape_From_File('./assets/teapot.obj')
+          'teapot': new Shape_From_File('./assets/teapot.obj'),
+          'male-model': new Shape_From_File('./assets/FinalBaseMesh.obj')
         };
 
         // *** Materials: ***  A "material" used on individual shapes specifies all fields
@@ -276,6 +277,9 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.slat_distance_y = 0.1;
     this.num_slats = 20;
     // Other initialization code as necessary
+
+    // Scripts - TODO: integrate into a class
+    this.script_male = false;
   }
 
   render_animation( caller )
@@ -336,12 +340,16 @@ export class Ticket_Booth extends Part_one_hermite_base{
 
     // slowly increase lowest_slat_y
     if (this.pulled_up_string_t >= 0) {
-      this.lowest_slat_y += 0.001 * this.pulled_up_string_t;
+      let multiplier = 0.002;
+      if (this.script_male) multiplier *= 15;
+
+      if (this.lowest_slat_y <= this.top_slat_y - .5)
+        this.lowest_slat_y += multiplier * this.pulled_up_string_t;
       this.pulled_up_string_t -= .15;
     }
 
     if (this.pulled_down_string_t >= 0) {
-      this.lowest_slat_y -= 0.001 * this.pulled_down_string_t;
+      this.lowest_slat_y -= 0.002 * this.pulled_down_string_t;
       this.pulled_down_string_t -= .15;
     }
 
@@ -382,6 +390,20 @@ export class Ticket_Booth extends Part_one_hermite_base{
       this.materials.slat // TODO
     )
 
+    // Draw male-model
+    if (this.script_male) {
+      let male_transform = Mat4.identity()
+        .times(Mat4.translation(7, 1.7, 0))
+        .times(Mat4.rotation(Math.PI / 2, 0, 1, 0))
+        .times(Mat4.scale(.8, .8, .8, 1))
+      this.shapes['male-model'].draw(
+        caller,
+        this.uniforms,
+        male_transform,
+        this.materials.slat // TODO
+      )
+    }
+
 
     // Update Physics and Drawing
     
@@ -409,8 +431,11 @@ export class Ticket_Booth extends Part_one_hermite_base{
   }
 
   pullDownStrip() {
-    if (this.lowest_slat_y >= 1.99) {
+    if (this.lowest_slat_y >= 1.97) {
       this.pulled_down_string_t = 5;
+    }
+    else {
+      this.script_male = true
     }
 
     this.pull_down_spring.applyPullingForce();
