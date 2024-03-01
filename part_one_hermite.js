@@ -1,4 +1,5 @@
 import {tiny, defs} from './examples/common.js';
+import { Window_Spring } from './Window_particle.js';
 import {WindChime} from './components/WindChime.js'
 import { Shape_From_File } from './examples/obj-file-demo.js';
 
@@ -93,11 +94,27 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         };
 
         this.ball_location = vec3(1, 1, 1);
-        this.ball_radius = 0.25;
+        this.ball_radius = 0.05;
+
+        this.pull_up_spring = new Window_Spring();
+        this.pull_up = this.pull_up_spring.create(.8, 8, 0.2, 5000, 100);
+
+        this.pull_down_spring = new Window_Spring();
+        this.pull_down = this.pull_down_spring.create(.9, 8, .2, 5000, 100); 
+
+        // Pulling springs control
+        this.pulled_up_string_t = 0;
+        this.pulled_down_string_t = 0;
 
         // TODO: you should create a Spline class instance
         this.windchime = new WindChime();
         this.windchime.position = vec3(8, 2.7, -1.2);
+
+
+      }
+        constructor(){
+        super();
+        this.t_sim = 0; 
       }
 
       render_animation( caller )
@@ -218,7 +235,31 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           this.materials.skybox
         )
 
-        this.shapes.test.draw(caller, this.uniforms, Mat4.identity().times(Mat4.translation(0, 3, 0)).times(Mat4.scale(.2, .2, .2)), this.materials.rgb)
+        // Draw window strips
+        
+        // Calculate the time step based on the frame rate
+        const frameRate = 60; // Target frame rate
+        let dt = 1.0 / frameRate; // Time step for display updates
+
+        // Clamp dt to a maximum value to prevent instability (1/30 is suggested in your feedback)
+        dt = Math.min(1.0 / 30, dt);
+
+        
+        // Calculate the next simulation time
+        const t_next = this.t_sim + dt;
+        
+
+        // Use a smaller time step for the simulation updates to maintain stability
+        const t_step = 1 / 1000; // A smaller time step for the simulation (e.g., 1 millisecond)
+
+        // Update the simulation in steps until reaching the next display time
+        for (; this.t_sim <= t_next; this.t_sim += t_step) {
+          this.pull_up_spring.update(t_step)
+          this.pull_down_spring.update(t_step)
+        }
+
+        this.pull_up_spring.draw(caller, this.uniforms, this.shapes, this.materials);
+        this.pull_down_spring.draw(caller, this.uniforms, this.shapes, this.materials)
 
         // TODO WindChime trial
         this.windchime.draw(caller, this.uniforms);
@@ -283,17 +324,23 @@ export class Ticket_Booth extends Part_one_hermite_base{
     // this.shapes.ball.draw( caller, this.uniforms, ball_transform, { ...this.materials.metal, color: blue } );
 
     // TODO: you should draw spline here.
+    // slowly increase lowest_slat_y
+    if (this.pulled_up_string_t >= 0) {
+      this.lowest_slat_y += 0.001 * this.pulled_up_string_t;
+      this.pulled_up_string_t -= .15;
+    }
 
-    // Draw the blinds
-    const top_slat_y = 4
-    let slat_distance_y = .1
-    let lowest_slat_y = 2.5
+    if (this.pulled_down_string_t >= 0) {
+      this.lowest_slat_y -= 0.001 * this.pulled_down_string_t;
+      this.pulled_down_string_t -= .15;
+    }
 
-    for (let y = top_slat_y; y >= lowest_slat_y; y -= slat_distance_y) {
+    const temp = (this.top_slat_y - this.lowest_slat_y) / this.num_slats;
+    for (let i = 0; i < this.num_slats; i++) {
       let slat_transform = Mat4.identity()
-        .times(Mat4.translation(7.75, y, 0))
+        .times(Mat4.translation(7.75, this.top_slat_y - i * temp , 0))
         .times(Mat4.rotation(-(Math.PI * 2) / 3, 0, 0, 1))
-        .times(Mat4.scale(0.08, 0.002, 0.83));
+        .times(Mat4.scale(0.07, 0.002, 0.83));
 
       this.shapes.cube.draw(
         caller,
@@ -334,8 +381,28 @@ export class Ticket_Booth extends Part_one_hermite_base{
   }
 
   render_controls()
-  {                                 // render_controls(): Sets up a panel of interactive HTML elements, including
-    // buttons with key bindings for affecting this scene, and live info readouts.
-    this.control_panel.innerHTML += "Placeholder";
+  {                                 // render_controls(): Sets up a panel of interactive HTML elements, including  
+    this.key_triggered_button("Pull the down-strip", ["N"], this.pullDownStrip);
+    this.key_triggered_button( "Pull the up-strip", ['M'], this.pullUpStrip);
+    
+  }
+
+  pullUpStrip() {
+    // Trigger the pulling force
+    // Adjust the position of the lowest slat
+    if (this.lowest_slat_y <= this.top_slat_y - .5) {
+      // this.lowest_slat_y += .1;
+      this.pulled_up_string_t = 5;
+    }
+
+    this.pull_up_spring.applyPullingForce();   
+  }
+
+  pullDownStrip() {
+    if (this.lowest_slat_y >= 1.99) {
+      this.pulled_down_string_t = 5;
+    }
+
+    this.pull_down_spring.applyPullingForce();
   }
 }
