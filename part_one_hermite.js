@@ -59,10 +59,10 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         };
         this.materials.table = {
           shader: phong,
-          ambient: .2,
-          diffusivity: 0.7,
-          specularity: 1,
-          color: color(.8, .4, 0, 1)
+          ambient: .1,
+          diffusivity: 1,
+          specularity: .4,
+          color: color(.8, .4, .1, 1)
         };
         this.materials.skybox = {
           shader: phong,
@@ -149,8 +149,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         // const light_position = Mat4.rotation( angle,   1,0,0 ).times( vec4( 0,-1,1,0 ) ); !!!
         // !!! Light changed here
         const light_position = vec4(-10, 10,  0, 1.0);
-        const room_light_position = vec4(10, 3, 1, 1.0);
-        this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ), defs.Phong_Shader.light_source( room_light_position, color(1, 1, 1, 1), 2) ];
+        this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ) ];
 
         // draw axis arrows.
         // this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
@@ -192,7 +191,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         let top_wall_transform = Mat4.identity()
           .times(Mat4.translation(7.75, 4, 0))
           .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
-          .times(Mat4.scale(1, 1, .1));
+          .times(Mat4.scale(1, 1, .3));
         this.shapes.cube.draw(
           caller,
           this.uniforms,
@@ -325,6 +324,16 @@ export class Ticket_Booth extends Part_one_hermite_base{
     // this.shapes.ball.draw( caller, this.uniforms, ball_transform, { ...this.materials.metal, color: blue } );
 
     // TODO: you should draw spline here.
+    // Update real-time light
+    const covered_percentage = (this.top_slat_y - this.lowest_slat_y) / 1.7
+    const room_light_position = vec4(10, 3, 0, 1);
+    this.uniforms.lights.push(
+    defs.Phong_Shader.light_source(
+      room_light_position,
+      color(1, 1, 1, 1),
+      3 * (1 - covered_percentage)
+    ));
+
     // slowly increase lowest_slat_y
     if (this.pulled_up_string_t >= 0) {
       this.lowest_slat_y += 0.001 * this.pulled_up_string_t;
