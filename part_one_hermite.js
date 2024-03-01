@@ -1,6 +1,7 @@
 import {tiny, defs} from './examples/common.js';
 import { Window_Spring } from './Window_particle.js';
 import {WindChime} from './components/WindChime.js'
+import { Shape_From_File } from './examples/obj-file-demo.js';
 
 // Pull these names into this module's scope for convenience:
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
@@ -32,7 +33,10 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           'axis' : new defs.Axis_Arrows(),
           'square': new defs.Square(),
           'cube' : new defs.Cube(),
-          'test' : new defs.Subdivision_Sphere(4)
+          'test' : new defs.Subdivision_Sphere(4),
+          'tree' : new Shape_From_File('./assets/Lowpoly_tree_sample.obj'),
+          'bench': new Shape_From_File('./assets/Bench_HighRes.obj'),
+          'teapot': new Shape_From_File('./assets/teapot.obj')
         };
 
         // *** Materials: ***  A "material" used on individual shapes specifies all fields
@@ -46,11 +50,18 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.materials.metal   = { shader: phong, ambient: .2, diffusivity: 1, specularity:  1, color: color( .9,.5,.9,1 ) }
         this.materials.rgb = { shader: tex_phong, ambient: .5, texture: new Texture( "assets/rgb.jpg" ) }
         this.materials.wall = { shader: phong, ambient: .1, diffusivity: .5, specularity: 0, color: color( .9, .9, .9, 1) }
+        this.materials.road = {
+          shader: phong,
+          ambient: 0.1,
+          diffusivity: 0.5,
+          specularity: 0,
+          color: color(.9, .9, .9, 1),
+        };
         this.materials.table = {
           shader: phong,
           ambient: .2,
           diffusivity: 0.7,
-          specularity: 0.1,
+          specularity: 1,
           color: color(.8, .4, 0, 1)
         };
         this.materials.skybox = {
@@ -66,6 +77,20 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           diffusivity: 1,
           specularity: 1,
           color: color(1, 1, 1, 1),
+        };
+        this.materials.grassland = {
+          shader: new defs.Textured_Phong(2),
+          ambient: .2,
+          diffusivity: .6,
+          specularity: 0,
+          texture: new Texture('./assets/grassland.jpg', "NEAREST")
+        }
+        this.materials.bench = {
+          shader: phong,
+          ambient: 0.4,
+          diffusivity: 0.8,
+          specularity: 0.1,
+          color: color(0.886, 0.820, 0.773, 1),
         };
 
         this.ball_location = vec3(1, 1, 1);
@@ -123,11 +148,11 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         // const light_position = Mat4.rotation( angle,   1,0,0 ).times( vec4( 0,-1,1,0 ) ); !!!
         // !!! Light changed here
         const light_position = vec4(-10, 10,  0, 1.0);
-        const room_light_position = vec4(12, 5, 0, 1.0);
-        this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ), defs.Phong_Shader.light_source( room_light_position, color(1, 1, 1, 1), 10) ];
+        const room_light_position = vec4(10, 3, 1, 1.0);
+        this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ), defs.Phong_Shader.light_source( room_light_position, color(1, 1, 1, 1), 2) ];
 
         // draw axis arrows.
-        this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
+        // this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
 
         // Draw the wall
         let right_wall_transform = Mat4.identity()
@@ -186,6 +211,22 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           this.materials.table
         )
 
+        // Draw teapot
+        let teapot_transform = Mat4.identity()
+          .times(Mat4.translation(8.4, 2.12, -.6))
+          .times(Mat4.rotation(Math.PI/2, -1, 0, 0))
+          .times(Mat4.rotation(-Math.PI/3, 0, 0, 1))
+          .times(Mat4.scale(.1, .1, .1))
+        let material_teapot = this.materials.metal;
+        material_teapot["color"] = color(0.3, 0.2, 0.1, 1);
+
+        this.shapes.teapot.draw(
+          caller,
+          this.uniforms,
+          teapot_transform,
+          material_teapot
+        )
+
         // Draw the skybox
         this.shapes.ball.draw(
           caller, 
@@ -230,7 +271,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
   constructor() {
     // Initialize properties
     super();
-    this.top_slat_y = 4;
+    this.top_slat_y = 3.7;
     this.lowest_slat_y = 2.5;
     this.slat_distance_y = 0.1;
     this.num_slats = 20;
@@ -263,18 +304,24 @@ export class Ticket_Booth extends Part_one_hermite_base{
         // translation(), scale(), and rotation() to generate matrices, and the
         // function times(), which generates products of matrices.
 
-    const blue = color( 0,0,1,1 ), yellow = color( 1,0.7,0,1 );
+    const blue = color( 0,0,1,1 ), yellow = color( 1,0.7,0,1 ), gray = color(.8, .8, .8, 1), black = color(.2, .2, .2, 1), green = color(0, .4, 0, 1);
 
     const t = this.t = this.uniforms.animation_time/1000;
 
     // !!! Draw ground
     let floor_transform = Mat4.translation(0, 0, 0).times(Mat4.scale(10, 0.01, 10));
-    this.shapes.box.draw( caller, this.uniforms, floor_transform, { ...this.materials.plastic, color: yellow } );
+    // this.shapes.box.draw( caller, this.uniforms, floor_transform, { ...this.materials.grassland, color: green } );
+    this.shapes.box.draw( caller, this.uniforms, floor_transform, this.materials.grassland );
+
+    // Draw road
+    let road_transform = Mat4.translation(-.2, 0.01, 0)
+      .times(Mat4.scale(1, 0.01, 10))
+    this.shapes.box.draw(caller, this.uniforms, road_transform, this.materials.road);
 
     // !!! Draw ball (for reference)
-    let ball_transform = Mat4.translation(this.ball_location[0], this.ball_location[1], this.ball_location[2])
-        .times(Mat4.scale(this.ball_radius, this.ball_radius, this.ball_radius));
-    this.shapes.ball.draw( caller, this.uniforms, ball_transform, { ...this.materials.metal, color: blue } );
+    // let ball_transform = Mat4.translation(this.ball_location[0], this.ball_location[1], this.ball_location[2])
+    //     .times(Mat4.scale(this.ball_radius, this.ball_radius, this.ball_radius));
+    // this.shapes.ball.draw( caller, this.uniforms, ball_transform, { ...this.materials.metal, color: blue } );
 
     // TODO: you should draw spline here.
     // slowly increase lowest_slat_y
@@ -302,7 +349,30 @@ export class Ticket_Booth extends Part_one_hermite_base{
         this.materials.slat
       );
     }
-    
+
+    // Draw bench
+    let bench_transform = Mat4.identity()
+      .times(Mat4.translation(-2.5, .5, 1))
+      .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
+    this.shapes.bench.draw(
+      caller, 
+      this.uniforms, 
+      bench_transform, 
+      this.materials.bench // TODO 
+    )
+
+    // Draw tree
+    let tree_transform = Mat4.identity()
+      .times(Mat4.translation(-2.5, 1.7, -1))
+      .times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
+    this.shapes.tree.draw(
+      caller,
+      this.uniforms,
+      tree_transform,
+      this.materials.slat // TODO
+    )
+
+
     // Update Physics and Drawing
     
 
