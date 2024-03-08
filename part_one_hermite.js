@@ -95,6 +95,13 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           specularity: 0.1,
           color: color(0.886, 0.820, 0.773, 1),
         };
+        this.materials.rosetta = {
+          shader: phong,
+          ambient: 0,
+          diffusivity: 0,
+          specularity: 0,
+          color: color(0, 0, 0, 1)
+        }
 
         this.ball_location = vec3(1, 1, 1);
         this.ball_radius = 0.05;
@@ -410,6 +417,17 @@ export class Ticket_Booth extends Part_one_hermite_base{
         male_transform,
         this.materials.slat // TODO
       )
+
+      // let rosetta_transform = Mat4.identity()
+      //   .times(Mat4.translation(-3, .9, -3))
+      //   .times(Mat4.rotation(Math.PI / 4, 0, 1, 0))
+      //   .times(Mat4.scale(.4, .9, .1))
+      // this.shapes.cube.draw(
+      //   caller,
+      //   this.uniforms,
+      //   rosetta_transform,
+      //   this.materials.rosetta
+      // )
     }
 
 
