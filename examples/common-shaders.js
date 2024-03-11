@@ -196,6 +196,113 @@ const Phong_Shader = defs.Phong_Shader =
       }
   };
 
+const Black_white_Phong =
+  (defs.Black_white_Phong = class Black_white_Phong extends Phong_Shader {
+    vertex_glsl_code() {
+      // ********* VERTEX SHADER *********
+      return (
+        this.shared_glsl_code() +
+        `
+        attribute vec3 position, normal;                            // Position is expressed in object coordinates.
+
+        uniform mat4 model_transform;
+        uniform mat4 projection_camera_model_transform;
+
+        void main() {                                                                
+            gl_Position = projection_camera_model_transform * vec4( position, 1.0 );     // Move vertex to final space.
+                                            // The final normal vector in screen space.
+            N = normalize( mat3( model_transform ) * normal / squared_scale);
+
+            vertex_worldspace = ( model_transform * vec4( position, 1.0 ) ).xyz;
+          } `
+      );
+    }
+
+    fragment_glsl_code() {
+      // ********* FRAGMENT SHADER *********
+      return (
+        this.shared_glsl_code() +
+        `
+        void main() {                          
+                                           // Compute an initial (ambient) color:
+            gl_FragColor = vec4( vec3(1, 1, 1).xyz * ambient, shape_color.w );
+                                           // Compute the final color with contributions from lights:
+            vec3 light = phong_model_lights( normalize( N ), vertex_worldspace );
+                                     
+            float t0 = 0.2;
+            float t1 = 0.08;
+            float t2 = 0.06;
+            float t3 = 0.04;
+            float strengthFactor = 2.0;
+
+            float ll = length(light);
+
+            if (ll > t0) {
+              strengthFactor = 5.0;
+              light *= strengthFactor;
+            }
+            else if (ll > t1) {
+              strengthFactor = 4.0;
+              light *= strengthFactor;
+            }
+            else if (ll > t2) {
+              strengthFactor = 3.0;
+              light *= strengthFactor;
+            }
+            else if (ll > t3) {
+              strengthFactor = 2.0;
+              light *= strengthFactor;
+            }
+                                           
+            gl_FragColor.xyz += light * 1.0;
+          } `
+      );
+    }
+  });
+
+const Wave_Phong = defs.Wave_Phong = 
+  class Wave_Phong extends Phong_Shader {
+  // In your shared_glsl_code function, add a uniform to represent time:
+  shared_glsl_code() {
+    return super.shared_glsl_code() + `uniform float animation_time;`
+  }
+
+  // Modify your vertex_glsl_code function to simulate waves
+  vertex_glsl_code () {
+    return this.shared_glsl_code() + `
+      attribute vec3 position, normal; // Position is expressed in object coordinates.
+
+      uniform mat4 model_transform;
+      uniform mat4 projection_camera_model_transform;
+
+      // Wave parameters
+      const float waveSpeed = 2.0;
+      const float waveHeight = 0.1;
+      const float waveFrequency = 2.0;
+
+      float calculateWaveY(float x, float z, float t) {
+          return sin(x * waveFrequency + t * waveSpeed) * cos(z * waveFrequency + t * waveSpeed) * waveHeight;
+      }
+
+      void main() {
+          // Calculate new y position based on wave function
+          float newY = position.y + calculateWaveY(position.x, position.z, animation_time);
+
+          // Apply the wave modification only to the y-coordinate
+          vec4 modifiedPosition = vec4(position.x, newY, position.z, 1.0);
+
+          gl_Position = projection_camera_model_transform * model_transform * modifiedPosition;
+          N = normalize(mat3(model_transform) * normal / squared_scale);
+          vertex_worldspace = (model_transform * modifiedPosition).xyz;
+      } `;
+  }
+
+    update_GPU(context, gpu_addresses, gpu_state, model_transform, material) {
+      super.update_GPU(context, gpu_addresses, gpu_state, model_transform, material);
+      context.uniform1f(gpu_addresses.animation_time, gpu_state.animation_time / 1000);
+    }
+  }
+
 
 const Textured_Phong = defs.Textured_Phong =
   class Textured_Phong extends Phong_Shader {

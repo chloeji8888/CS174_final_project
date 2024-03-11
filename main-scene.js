@@ -28,7 +28,7 @@ import {Text_Demo}
 import {Transforms_Sandbox_Base, Transforms_Sandbox}
     from "./examples/transforms-sandbox.js";
 
-import {Ticket_Booth} from "./part_one_hermite.js";
+import {Part_one_hermite_base, Ticket_Booth} from "./part_one_hermite.js";
 
 Object.assign (defs,
     {Minimal_Webgl_Demo},

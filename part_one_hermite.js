@@ -47,53 +47,54 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         // Expected values can be found listed in Phong_Shader::update_GPU().
         const phong = new defs.Phong_Shader();
         const tex_phong = new defs.Textured_Phong();
+        const black_white_phong = new defs.Black_white_Phong();
         this.materials = {};
-        this.materials.plastic = { shader: phong, ambient: .2, diffusivity: 1, specularity: .5, color: color( .9,.5,.9,1 ) }
-        this.materials.metal   = { shader: phong, ambient: .2, diffusivity: 1, specularity:  1, color: color( .9,.5,.9,1 ) }
+        this.materials.plastic = { shader: black_white_phong, ambient: .2, diffusivity: 1, specularity: .5, color: color( .1,.1,.1,1 ) }
+        this.materials.metal   = { shader: black_white_phong, ambient: .2, diffusivity: 1, specularity: .5, color: color( .1,.1,.1,1 ) }
         this.materials.rgb = { shader: tex_phong, ambient: .5, texture: new Texture( "assets/rgb.jpg" ) }
-        this.materials.wall = { shader: phong, ambient: .1, diffusivity: .5, specularity: 0, color: color( .9, .9, .9, 1) }
+        this.materials.wall = { shader: black_white_phong, ambient: .1, diffusivity: .5, specularity: 0, color: color( .9, .9, .9, 1) }
         this.materials.road = {
-          shader: phong,
-          ambient: 0.1,
-          diffusivity: 0.5,
+          shader: black_white_phong,
+          ambient: 0,
+          diffusivity: 0.9,
           specularity: 0,
           color: color(.9, .9, .9, 1),
         };
         this.materials.table = {
-          shader: phong,
+          shader: black_white_phong,
           ambient: .1,
           diffusivity: 1,
           specularity: .4,
-          color: color(.8, .4, .1, 1)
+          color: color(0, 0, 0, 1)
         };
         this.materials.skybox = {
-          shader: phong,
-          ambient: .7,
-          diffusivity: 0,
-          specularity: 0,
-          color: color(0.68, .85, 1, 1)
+          shader: black_white_phong,
+          ambient: 1,
+          diffusivity: 1,
+          specularity: 1,
+          color: color(1, 1, 1, 1)
           // color: color(.5, 0, 0, 1)
         }
         this.materials.slat = {
-          shader: phong,
-          ambient: 0.2,
+          shader: black_white_phong,
+          ambient: 0.7,
           diffusivity: 1,
           specularity: 1,
           color: color(1, 1, 1, 1),
         };
         this.materials.grassland = {
           shader: new defs.Textured_Phong(2),
-          ambient: .2,
+          ambient: 0,
           diffusivity: .6,
           specularity: 0,
           texture: new Texture('./assets/grassland.jpg', "NEAREST")
         }
         this.materials.bench = {
-          shader: phong,
-          ambient: 0.4,
-          diffusivity: 0.8,
+          shader: black_white_phong,
+          ambient: 0.01,
+          diffusivity: 1  ,
           specularity: 0.1,
-          color: color(0.886, 0.820, 0.773, 1),
+          color: color(1, 1, 1, 1),
         };
         this.materials.rosetta = {
           shader: phong,
@@ -101,6 +102,13 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           diffusivity: 0,
           specularity: 0,
           color: color(0, 0, 0, 1)
+        }
+        this.materials.cloud = {
+          shader: phong,
+          ambient: .4,
+          diffusivity: .2,
+          specularity: 0,
+          color: color(1, 1, 1, 1)
         }
 
         this.ball_location = vec3(1, 1, 1);
@@ -158,8 +166,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // const light_position = Mat4.rotation( angle,   1,0,0 ).times( vec4( 0,-1,1,0 ) ); !!!
         // !!! Light changed here
-        const light_position = vec4(-10, 10,  0, 1.0);
-        this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ) ];
+        
 
         // draw axis arrows.
         // this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
@@ -228,7 +235,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           .times(Mat4.rotation(-Math.PI/3, 0, 0, 1))
           .times(Mat4.scale(.1, .1, .1))
         let material_teapot = this.materials.metal;
-        material_teapot["color"] = color(0.3, 0.2, 0.1, 1);
+        material_teapot["color"] = color(1, 1, 1, 1);
 
         this.shapes.teapot.draw(
           caller,
@@ -238,11 +245,14 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         )
 
         // Draw the skybox
+        let temp = this.materials.skybox
+        // temp["diffusity"] = Math.sin(t)
+        // temp["ambient"] = Math.sin(t) + .5
         this.shapes.ball.draw(
           caller, 
           this.uniforms,
-          Mat4.identity().times(Mat4.scale(50, 50, 50)),
-          this.materials.skybox
+          Mat4.identity().times(Mat4.scale(10, 10, 10)),
+          temp
         )
 
         // Draw window strips
@@ -343,9 +353,31 @@ export class Ticket_Booth extends Part_one_hermite_base{
     // this.shapes.ball.draw( caller, this.uniforms, ball_transform, { ...this.materials.metal, color: blue } );
 
     // TODO: you should draw spline here.
+
+
+
     // Update real-time light
+    // Global light
+    let c1 = color(1, 1, 1, 1), c2 = color(1, 0, 0, 1);
+
+    const light_position = vec4(-5, 7, 0, 1.0);
+    // this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ) ];
+    this.uniforms.lights = [
+      defs.Phong_Shader.light_source(
+        light_position,
+        color(
+          (Math.sin(t) + 1) / 2,
+          (Math.sin(t) + 1) / 2,
+          (Math.sin(t) + 1) / 2,
+          1
+        ),
+        10000
+      ),
+    ];
+
+    // In-door lights
     const covered_percentage = (this.top_slat_y - this.lowest_slat_y) / 1.7
-    const room_light_position = vec4(10, 3, 0, 1);
+    const room_light_position = vec4(10, 1.8, 0, 1);
     this.uniforms.lights.push(
     defs.Phong_Shader.light_source(
       room_light_position,
@@ -402,7 +434,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
       caller,
       this.uniforms,
       tree_transform,
-      this.materials.slat // TODO
+      this.materials.bench // TODO
     )
 
     // Draw male-model
