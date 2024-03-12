@@ -38,6 +38,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           'test' : new defs.Subdivision_Sphere(4),
           'tree' : new Shape_From_File('./assets/Lowpoly_tree_sample.obj'),
           'bird' : new Shape_From_File('./assets/bird.obj'),
+          'butterfly':new Shape_From_File('./assets/MONARCH.OBJ'),
           'bird_wingspan' : new Shape_From_File('./assets/bird_wingspan.obj'),
           'bench': new Shape_From_File('./assets/Bench_HighRes.obj'),
           'teapot': new Shape_From_File('./assets/teapot.obj'),
@@ -524,6 +525,20 @@ export class Ticket_Booth extends Part_one_hermite_base{
     bird.draw(caller, this.uniforms, bird_transform, this.materials.bench)
 
 
+    //TODO: Draw the butterfly
+    let butter_tranform = Mat4.identity()
+      .times(Mat4.translation(0, 3, 1.5))
+      .times(Mat4.rotation(Math.PI / 2, 0, 1, 1))
+      .times(Mat4.scale(.04, .04, .04))
+    let butterfly;
+    if (Math.floor(t * 4) % 2 == 0) butterfly = this.shapes.butterfly;
+    else{
+      butterfly = this.shapes.butterfly
+      butter_tranform = butter_tranform.times(Mat4.scale(.1,1,1))
+    }
+
+    butterfly.draw(caller, this.uniforms, butter_tranform, this.materials.bench)
+
     // Update Physics and Drawing
     
 
@@ -537,6 +552,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.key_triggered_button("Pull the down-strip", ["N"], this.pullDownStrip);
     this.key_triggered_button( "Pull the up-strip", ['M'], this.pullUpStrip);
     this.key_triggered_button("Start Newton's cradle", ['L'], () => this.liftFirstSphere());
+
     
   }
 
