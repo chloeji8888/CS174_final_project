@@ -227,7 +227,7 @@ const Black_white_Phong =
                                            // Compute an initial (ambient) color:
             gl_FragColor = vec4( vec3(1, 1, 1).xyz * ambient, shape_color.w );
                                            // Compute the final color with contributions from lights:
-            vec3 light = phong_model_lights( normalize( N ), vertex_worldspace );
+            vec3 light = phong_model_lights( normalize( N ), vertex_worldspace ) * diffusivity;
                                      
             float t0 = 0.2;
             float t1 = 0.08;
@@ -253,8 +253,12 @@ const Black_white_Phong =
               strengthFactor = 2.0;
               light *= strengthFactor;
             }
+            else {
+              strengthFactor = 0.0;
+              light *= strengthFactor;
+            }
                                            
-            gl_FragColor.xyz += light * 1.0;
+            gl_FragColor.xyz += light;
           } `
       );
     }

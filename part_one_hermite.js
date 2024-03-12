@@ -3,6 +3,7 @@ import { Window_Spring } from './Window_particle.js';
 import { NewtonCradle } from './newtoncradle.js';
 import {WindChime} from './components/WindChime.js'
 import { Shape_From_File } from './examples/obj-file-demo.js';
+import { Text_Line } from './examples/text-demo.js';
 
 // Pull these names into this module's scope for convenience:
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
@@ -36,9 +37,11 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           'cube' : new defs.Cube(),
           'test' : new defs.Subdivision_Sphere(4),
           'tree' : new Shape_From_File('./assets/Lowpoly_tree_sample.obj'),
+          'bird' : new Shape_From_File('./assets/bird.obj'),
+          'bird_wingspan' : new Shape_From_File('./assets/bird_wingspan.obj'),
           'bench': new Shape_From_File('./assets/Bench_HighRes.obj'),
           'teapot': new Shape_From_File('./assets/teapot.obj'),
-          'male-model': new Shape_From_File('./assets/FinalBaseMesh.obj')
+          'male-model': new Shape_From_File('./assets/FinalBaseMesh.obj'),
         };
 
         // *** Materials: ***  A "material" used on individual shapes specifies all fields
@@ -48,6 +51,24 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         const phong = new defs.Phong_Shader();
         const tex_phong = new defs.Textured_Phong();
         const black_white_phong = new defs.Black_white_Phong();
+        const texture = new defs.Textured_Phong(1);
+        this.grey = {
+          shader: phong,
+          color: color(0.5, 0.5, 0.5, 1),
+          ambient: 0,
+          diffusivity: 0.3,
+          specularity: 0.5,
+          smoothness: 10,
+        };
+
+        // To show text you need a Material like this one:
+        this.text_image = {
+          shader: texture,
+          ambient: 1,
+          diffusivity: 0,
+          specularity: 0,
+          texture: new Texture("assets/text_inv.png"),
+        };
         this.materials = {};
         this.materials.plastic = { shader: black_white_phong, ambient: .2, diffusivity: 1, specularity: .5, color: color( .1,.1,.1,1 ) }
         this.materials.metal   = { shader: black_white_phong, ambient: .2, diffusivity: 1, specularity: .5, color: color( .1,.1,.1,1 ) }
@@ -55,10 +76,18 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.materials.wall = { shader: black_white_phong, ambient: .1, diffusivity: .5, specularity: 0, color: color( .9, .9, .9, 1) }
         this.materials.road = {
           shader: black_white_phong,
-          ambient: 0,
-          diffusivity: 0.9,
+          ambient: 0.2,
+          diffusivity: 0.8,
           specularity: 0,
           color: color(.9, .9, .9, 1),
+        };
+        this.materials.grassland = {
+          shader: phong,
+          ambient: 0.7,
+          diffusivity: 0.2,
+          specularity: 0,
+          color: color(0.8, 0.8, 0.8, 1),
+          // texture: new Texture('./assets/grassland.jpg', "NEAREST")
         };
         this.materials.table = {
           shader: black_white_phong,
@@ -82,13 +111,13 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           specularity: 1,
           color: color(1, 1, 1, 1),
         };
-        this.materials.grassland = {
-          shader: new defs.Textured_Phong(2),
-          ambient: 0,
-          diffusivity: .6,
+        this.materials.black = {
+          shader: phong,
+          ambient: 1,
+          diffusivity: 0,
           specularity: 0,
-          texture: new Texture('./assets/grassland.jpg', "NEAREST")
-        }
+          color: color(0, 0, 0, 1),
+        };
         this.materials.bench = {
           shader: black_white_phong,
           ambient: 0.01,
@@ -129,7 +158,8 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.newtoncradle = new NewtonCradle(5, 0.01, 0.05, vec3(8.5,2.2,0), 0.15)
         this.windchime.position = vec3(8, 2.7, -1.2);
 
-
+        // Text trial
+        this.text = new Text_Line(20)
       }
         constructor(){
         super();
@@ -241,7 +271,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           caller,
           this.uniforms,
           teapot_transform,
-          material_teapot
+          this.materials.bench
         )
 
         // Draw the skybox
@@ -251,7 +281,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.shapes.ball.draw(
           caller, 
           this.uniforms,
-          Mat4.identity().times(Mat4.scale(10, 10, 10)),
+          Mat4.identity().times(Mat4.scale(10, 10, 10)).times(Mat4.translation(.2, 0, 0)),
           temp
         )
 
@@ -298,7 +328,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
     // Initialize properties
     super();
     this.top_slat_y = 3.7;
-    this.lowest_slat_y = 2.5;
+    this.lowest_slat_y = 3.2;
     this.slat_distance_y = 0.1;
     this.num_slats = 20;
     // Other initialization code as necessary
@@ -366,23 +396,23 @@ export class Ticket_Booth extends Part_one_hermite_base{
       defs.Phong_Shader.light_source(
         light_position,
         color(
-          (Math.sin(t) + 1) / 2,
-          (Math.sin(t) + 1) / 2,
-          (Math.sin(t) + 1) / 2,
+          (Math.sin(t / 7) + 1) / 2,
+          (Math.sin(t / 7) + 1) / 2,
+          (Math.sin(t / 7) + 1) / 2,
           1
         ),
-        10000
+        10
       ),
     ];
 
     // In-door lights
     const covered_percentage = (this.top_slat_y - this.lowest_slat_y) / 1.7
-    const room_light_position = vec4(10, 1.8, 0, 1);
+    const room_light_position = vec4(10, 2, 0, 1);
     this.uniforms.lights.push(
     defs.Phong_Shader.light_source(
       room_light_position,
       color(1, 1, 1, 1),
-      3 * (1 - covered_percentage)
+      1 * (1 - covered_percentage)
     ));
 
     // slowly increase lowest_slat_y
@@ -401,8 +431,10 @@ export class Ticket_Booth extends Part_one_hermite_base{
     }
 
     const temp = (this.top_slat_y - this.lowest_slat_y) / this.num_slats;
+
+    let slat_transform;
     for (let i = 0; i < this.num_slats; i++) {
-      let slat_transform = Mat4.identity()
+        slat_transform = Mat4.identity()
         .times(Mat4.translation(7.75, this.top_slat_y - i * temp , 0))
         .times(Mat4.rotation(-(Math.PI * 2) / 3, 0, 0, 1))
         .times(Mat4.scale(0.07, 0.002, 0.83));
@@ -414,6 +446,16 @@ export class Ticket_Booth extends Part_one_hermite_base{
         this.materials.slat
       );
     }
+
+    slat_transform = Mat4.identity()
+      .times(Mat4.translation(7.75, this.top_slat_y - (this.num_slats + .3) * temp, 0))
+      .times(Mat4.scale(0.05, 0.02, 0.83));
+    this.shapes.cube.draw(
+      caller,
+      this.uniforms,
+      slat_transform,
+      this.materials.black
+    )
 
     // Draw bench
     let bench_transform = Mat4.identity()
@@ -461,6 +503,25 @@ export class Ticket_Booth extends Part_one_hermite_base{
       //   this.materials.rosetta
       // )
     }
+
+    // Text
+    this.text.set_string("Albeit...", caller);
+    this.text.draw(caller, this.uniforms, Mat4.identity().times(Mat4.translation(0, 4, 3)).times(Mat4.rotation(Math.PI / 2, 0, 1, 0).times(Mat4.scale(.2, .2, .2))), this.text_image)
+    
+    // TODO: Draw the bird
+    let bird_transform = Mat4.identity()
+      .times(Mat4.translation(-2, 3, 1.5))
+      .times(Mat4.rotation(Math.PI / 2, 0, 1, 1))
+      .times(Mat4.scale(.12, .12, .12))
+    
+    let bird;
+    if (Math.floor(t * 8) % 2 == 0) bird = this.shapes.bird;
+    else {
+      bird = this.shapes.bird_wingspan;
+      bird_transform = bird_transform.times(Mat4.scale(.955, .955, .955))
+    }
+
+    bird.draw(caller, this.uniforms, bird_transform, this.materials.bench)
 
 
     // Update Physics and Drawing
