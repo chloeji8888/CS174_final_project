@@ -54,6 +54,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         const tex_phong = new defs.Textured_Phong();
         const black_white_phong = new defs.Black_white_Phong();
         const texture = new defs.Textured_Phong(1);
+        const hard_border_black_white_phong = new defs.Hard_border_Black_white_Phong();
         this.grey = {
           shader: phong,
           color: color(0.5, 0.5, 0.5, 1),
@@ -78,17 +79,17 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.materials.wall = { shader: black_white_phong, ambient: .1, diffusivity: .5, specularity: 0, color: color( .9, .9, .9, 1) }
         this.materials.road = {
           shader: black_white_phong,
-          ambient: 0.2,
-          diffusivity: 0.8,
+          ambient: 1,
+          diffusivity: 1,
           specularity: 0,
-          color: color(.9, .9, .9, 1),
+          color: color(.1, .1, .1, 1),
         };
         this.materials.grassland = {
-          shader: phong,
-          ambient: 0.7,
-          diffusivity: 0.2,
+          shader: black_white_phong,
+          ambient: 0,
+          diffusivity: 2,
           specularity: 0,
-          color: color(0.05, 0.05, 0.05, 1),
+          color: color(0.1, 0.1, 0.1, 1),
           // texture: new Texture('./assets/grassland.jpg', "NEAREST")
         };
         this.materials.table = {
@@ -99,9 +100,9 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           color: color(0, 0, 0, 1)
         };
         this.materials.skybox = {
-          shader: black_white_phong,
-          ambient: 1,
-          diffusivity: 1,
+          shader: hard_border_black_white_phong,
+          ambient: 0.8,
+          diffusivity: 0,
           specularity: 1,
           color: color(1, 1, 1, 1)
           // color: color(.5, 0, 0, 1)
@@ -141,6 +142,13 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           specularity: 0,
           color: color(1, 1, 1, 1)
         }
+        this.materials.sun = {
+          shader: black_white_phong,
+          ambient: 1,
+          diffusivity: 0,
+          specularity: 0,
+          color: color(1, 1, 1, 1)
+        }
 
         this.ball_location = vec3(1, 1, 1);
         this.ball_radius = 0.05;
@@ -176,6 +184,14 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // this.bird_trail.add_point(-2.2, 1.5, 2, -1, -2, -1);  // S-B point 1
         // this.bird_trail.add_point(-2.5, 1.25, 1.5, 0, 0, 0); // Bench location
+
+        // TODO: sun trail
+        this.sun_trail = new HermiteSpline();
+        this.sun_trail.add_point(-5, 4, -4, 0, 0.2, 1)
+        this.sun_trail.add_point(-6, 5, 0, 0, 0, 1)
+        this.sun_trail.add_point(-5, 4, 4, 0, 0.2, -1)
+        this.sun_trail.add_point(-6, 5, 0, 0, 0, -1);
+        this.sun_trail.add_point(-5, 4, -4, 0, 0.2, 1)
       }
         constructor(){
         super();
@@ -293,7 +309,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         // Draw the skybox
         let temp = this.materials.skybox
         // temp["diffusity"] = Math.sin(t)
-        // temp["ambient"] = Math.sin(t) + .5
+        temp["ambient"] = (Math.cos(t / 7) + 1) / 3 + .2;
         this.shapes.ball.draw(
           caller, 
           this.uniforms,
@@ -390,9 +406,9 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.shapes.box.draw( caller, this.uniforms, floor_transform, this.materials.grassland );
 
     // Draw road
-    let road_transform = Mat4.translation(-.2, 0.01, 0)
-      .times(Mat4.scale(1, 0.01, 10))
-    this.shapes.box.draw(caller, this.uniforms, road_transform, this.materials.road);
+    // let road_transform = Mat4.translation(-.2, 0.01, 0)
+    //   .times(Mat4.scale(1, 0.01, 10))
+    // this.shapes.box.draw(caller, this.uniforms, road_transform, this.materials.road);
 
     // !!! Draw ball (for reference)
     // let ball_transform = Mat4.translation(this.ball_location[0], this.ball_location[1], this.ball_location[2])
@@ -407,18 +423,18 @@ export class Ticket_Booth extends Part_one_hermite_base{
     // Global light
     let c1 = color(1, 1, 1, 1), c2 = color(1, 0, 0, 1);
 
-    const light_position = vec4(-5, 7, Math.cos(t / 5), 1.0);
+    let light_position = this.sun_trail.get_position((Math.cos(t / 14) + 1) / 2);
+    light_position = vec4(light_position[0], light_position[1], light_position[2], 1.0);
+    this.materials.sun["ambient"] = (Math.cos(t / 7) + 1) / 2;
+    this.shapes.ball.draw(caller, this.uniforms, Mat4.translation(light_position[0], light_position[1], light_position[2]).times(Mat4.scale(.7, .7, .7)), this.materials.sun)
     // this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ) ];
     this.uniforms.lights = [
       defs.Phong_Shader.light_source(
         light_position,
         color(
-          (Math.sin(t / 7) + 1) / 2,
-          (Math.sin(t / 7) + 1) / 2,
-          (Math.sin(t / 7) + 1) / 2,
-          1
+          1, 1, 1, 1
         ),
-        10
+        (Math.cos(t / 7) + 1) * 4 + 1
       ),
     ];
 
@@ -522,7 +538,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
     }
 
     // Text
-    this.text.set_string("Albeit...", caller);
+    this.text.set_string("Help!!!", caller);
     this.text.draw(caller, this.uniforms, Mat4.identity().times(Mat4.translation(0, 4, 3)).times(Mat4.rotation(Math.PI / 2, 0, 1, 0).times(Mat4.scale(.2, .2, .2))), this.text_image)
     
     // TODO: Draw the bird
