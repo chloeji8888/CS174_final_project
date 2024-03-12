@@ -4,11 +4,13 @@ import { NewtonCradle } from './newtoncradle.js';
 import {WindChime} from './components/WindChime.js'
 import { Shape_From_File } from './examples/obj-file-demo.js';
 import { Text_Line } from './examples/text-demo.js';
+import { HermiteSpline } from './components/HermiteSpline.js';
 
 // Pull these names into this module's scope for convenience:
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
 
 // TODO: you should implement the required classes here or in another file.
+
 
 export
 const Part_one_hermite_base = defs.Part_one_hermite_base =
@@ -159,7 +161,20 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.windchime.position = vec3(8, 2.7, -1.2);
 
         // Text trial
-        this.text = new Text_Line(20)
+        this.text = new Text_Line(20);
+
+        // TODO: bird trail
+        this.bird_trail = new HermiteSpline();
+        this.bird_trail.add_point(-2, 3, 1.5, -1, -1, 1); // Start location
+
+        // Fly around a little?
+        this.bird_trail.add_point(-3, 2.7, 2, 1, -0, -1);
+        this.bird_trail.add_point(-2, 2.7, 1.5, -1, 0, 2);
+        this.bird_trail.add_point(-2.5, 2.7, 2, 1, .5, -1);
+        this.bird_trail.add_point(-2, 3, 1.5, -1, -1, -1);
+
+        this.bird_trail.add_point(-2.2, 1.5, 2, -1, -2, -1);  // S-B point 1
+        this.bird_trail.add_point(-2.5, 0.5, 1, 0, 0, 0); // Bench location
       }
         constructor(){
         super();
@@ -407,12 +422,12 @@ export class Ticket_Booth extends Part_one_hermite_base{
 
     // In-door lights
     const covered_percentage = (this.top_slat_y - this.lowest_slat_y) / 1.7
-    const room_light_position = vec4(10, 2, 0, 1);
+    const room_light_position = vec4(10, 2.5, 0, 1);
     this.uniforms.lights.push(
     defs.Phong_Shader.light_source(
       room_light_position,
       color(1, 1, 1, 1),
-      1 * (1 - covered_percentage)
+      1.3 * (1 - covered_percentage)
     ));
 
     // slowly increase lowest_slat_y
@@ -509,8 +524,12 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.text.draw(caller, this.uniforms, Mat4.identity().times(Mat4.translation(0, 4, 3)).times(Mat4.rotation(Math.PI / 2, 0, 1, 0).times(Mat4.scale(.2, .2, .2))), this.text_image)
     
     // TODO: Draw the bird
-    let bird_transform = Mat4.identity()
-      .times(Mat4.translation(-2, 3, 1.5))
+    let bird_position = this.bird_trail.get_position((Math.sin(t) + 1) / 2);
+    let bird_tangent = this.bird_trail.get_tangent((Math.sin(t) + 1) / 2);
+
+    let bird_direction = Mat4.look_at(bird_position, bird_position.plus(bird_tangent), vec3(0, 1, 0));
+
+    let bird_transform = bird_direction
       .times(Mat4.rotation(Math.PI / 2, 0, 1, 1))
       .times(Mat4.scale(.12, .12, .12))
     
