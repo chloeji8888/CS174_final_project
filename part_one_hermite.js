@@ -88,7 +88,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           ambient: 0.7,
           diffusivity: 0.2,
           specularity: 0,
-          color: color(0.8, 0.8, 0.8, 1),
+          color: color(0.05, 0.05, 0.05, 1),
           // texture: new Texture('./assets/grassland.jpg', "NEAREST")
         };
         this.materials.table = {
@@ -169,12 +169,13 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // Fly around a little?
         this.bird_trail.add_point(-3, 2.7, 2, 1, -0, -1);
-        this.bird_trail.add_point(-2, 2.7, 1.5, -1, 0, 2);
-        this.bird_trail.add_point(-2.5, 2.7, 2, 1, .5, -1);
-        this.bird_trail.add_point(-2, 3, 1.5, -1, -1, -1);
+        this.bird_trail.add_point(-2, 2.4, 1.5, -1, 0, 2);
+        this.bird_trail.add_point(-2.5, 2.5, 2, 1, .5, -1);
+        this.bird_trail.add_point(-2, 3.1, 1.5, 0, -1, 0);
+        this.bird_trail.add_point(-2, 3, 1.5, -1, -1, 1);
 
-        this.bird_trail.add_point(-2.2, 1.5, 2, -1, -2, -1);  // S-B point 1
-        this.bird_trail.add_point(-2.5, 0.5, 1, 0, 0, 0); // Bench location
+        // this.bird_trail.add_point(-2.2, 1.5, 2, -1, -2, -1);  // S-B point 1
+        // this.bird_trail.add_point(-2.5, 1.25, 1.5, 0, 0, 0); // Bench location
       }
         constructor(){
         super();
@@ -296,7 +297,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.shapes.ball.draw(
           caller, 
           this.uniforms,
-          Mat4.identity().times(Mat4.scale(10, 10, 10)).times(Mat4.translation(.2, 0, 0)),
+          Mat4.identity().times(Mat4.scale(10, 10, 9)).times(Mat4.translation(.2, 0, 0)),
           temp
         )
 
@@ -350,6 +351,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
 
     // Scripts - TODO: integrate into a class
     this.script_male = false;
+    this.getDown = -1;
   }
 
   render_animation( caller )
@@ -405,7 +407,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
     // Global light
     let c1 = color(1, 1, 1, 1), c2 = color(1, 0, 0, 1);
 
-    const light_position = vec4(-5, 7, 0, 1.0);
+    const light_position = vec4(-5, 7, Math.cos(t / 5), 1.0);
     // this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ) ];
     this.uniforms.lights = [
       defs.Phong_Shader.light_source(
@@ -524,20 +526,47 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.text.draw(caller, this.uniforms, Mat4.identity().times(Mat4.translation(0, 4, 3)).times(Mat4.rotation(Math.PI / 2, 0, 1, 0).times(Mat4.scale(.2, .2, .2))), this.text_image)
     
     // TODO: Draw the bird
-    let bird_position = this.bird_trail.get_position((Math.sin(t) + 1) / 2);
-    let bird_tangent = this.bird_trail.get_tangent((Math.sin(t) + 1) / 2);
+    let bird_progress;
+    console.log("Getdown", this.getDown)
+    if (this.getDown >= 0) {
+      bird_progress = Math.min((t / 6 - this.getDown) * 3 / 4, 1);
+    }
+    else { 
+      bird_progress = t / 6 - Math.floor(t / 6);
+    }
+    let bird_position = this.bird_trail.get_position(bird_progress);
+    let bird_tangent = this.bird_trail.get_tangent(bird_progress);
+    console.log("Progress", bird_progress)
 
-    let bird_direction = Mat4.look_at(bird_position, bird_position.plus(bird_tangent), vec3(0, 1, 0));
+    let up = vec3(0, 1, 0);
+    let right = up.cross(bird_tangent).normalized();
+    // let rotation = Mat4.of(
+    //   [right[0], right[1], right[2], bird_position[0]],
+    //   [up[0], up[1], up[2], bird_position[1]],
+    //   [bird_tangent[0], bird_tangent[1], bird_tangent[2], bird_position[2]],
+    //   [0, 0, 0, 1]
+    // )
+    // let _bird_transform = Mat4.look_at(bird_position, bird_position.plus(bird_tangent), up)
+    
+    // let wing_freq = Math.ceil(Math.random() * 100);
+    // let wing_freq = 2;
 
-    let bird_transform = bird_direction
-      .times(Mat4.rotation(Math.PI / 2, 0, 1, 1))
-      .times(Mat4.scale(.12, .12, .12))
+    console.log("Bird tangent: ", bird_tangent)
+    // console.log("Bird rotation: ", rotation, Mat4.identity())
+
+    let bird_transform = Mat4.identity()
+      .times(Mat4.translation(bird_position[0], bird_position[1], bird_position[2]))
+      .times(Mat4.rotation(Math.PI / 1.2, 0, 1, 0))
+      .times(Mat4.rotation(-.4, 0, 0, 1))
+      .times(Mat4.rotation(Math.PI / 2, -1, 0, 0))
+      // .times(rotation)
+      .times(Mat4.scale(0.12, 0.12, 0.12));
     
     let bird;
-    if (Math.floor(t * 8) % 2 == 0) bird = this.shapes.bird;
+    if (Math.floor(t * 80) % 2 == 0 || bird_progress >= 1) bird = this.shapes.bird;
     else {
       bird = this.shapes.bird_wingspan;
-      bird_transform = bird_transform.times(Mat4.scale(.955, .955, .955))
+      bird_transform = bird_transform.times(Mat4.scale(0.955, 0.955, 0.955));
     }
 
     bird.draw(caller, this.uniforms, bird_transform, this.materials.bench)
@@ -556,7 +585,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.key_triggered_button("Pull the down-strip", ["N"], this.pullDownStrip);
     this.key_triggered_button( "Pull the up-strip", ['M'], this.pullUpStrip);
     this.key_triggered_button("Start Newton's cradle", ['L'], () => this.liftFirstSphere());
-    
+    this.key_triggered_button("Get down birdie", ['K'], () => this.getDownBirdie())
   }
 
   liftFirstSphere() {
@@ -583,5 +612,11 @@ export class Ticket_Booth extends Part_one_hermite_base{
     }
 
     this.pull_down_spring.applyPullingForce();
+  }
+
+  getDownBirdie() {
+    this.bird_trail.add_point(-2.2, 1.5, 2, -1, -2, -1); // S-B point 1
+    this.bird_trail.add_point(-2.5, 1.25, 1.5, 0, 0, 0); // Bench location
+    this.getDown = Math.floor(this.uniforms.animation_time/1000 / 6);
   }
 }
