@@ -156,7 +156,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           ambient: 0.8,
           diffusivity: 0,
           specularity: 0,
-          color: color(0.7, 0, 0, 1)
+          color: color(0.5, 0, 0, 1)
         }
 
         this.ball_location = vec3(1, 1, 1);
@@ -212,7 +212,8 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.butterfly_trail.add_point(-1.5, 1, -2, 1, .5, -1);
         this.butterfly_trail.add_point(-1, 1.5, -2, 1, .5, -1);
         this.butterfly_trail.add_point(-1.5, 1, -2, 1, .5, -1);
-        this.butterfly_trail.add_point(-2.5, 1.5, -2, 1, .5, -1);
+        this.butterfly_trail.add_point(-2.5, 1.5, -2, -1, .5, 0);
+        this.butterfly_trail.add_point(-3, 1.7, -2, 1, -0, -1);
        
       }
         constructor(){
