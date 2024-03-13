@@ -161,6 +161,8 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // Text trial
         this.text = new Text_Line(20)
+          
+          
       }
         constructor(){
         super();
@@ -194,6 +196,8 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         // the shader when coloring shapes.  See Light's class definition for inputs.
         const t = this.t = this.uniforms.animation_time/1000;
         const angle = Math.sin( t );
+
+       
 
         // const light_position = Mat4.rotation( angle,   1,0,0 ).times( vec4( 0,-1,1,0 ) ); !!!
         // !!! Light changed here
@@ -526,18 +530,34 @@ export class Ticket_Booth extends Part_one_hermite_base{
 
 
     //TODO: Draw the butterfly
-    let butter_tranform = Mat4.identity()
+    let butter1_tranform = Mat4.identity()
       .times(Mat4.translation(0, 3, 1.5))
-      .times(Mat4.rotation(Math.PI / 2, 0, 1, 1))
+      .times(Mat4.rotation(Math.PI / 6, 0, 1, 1))
       .times(Mat4.scale(.04, .04, .04))
     let butterfly;
     if (Math.floor(t * 4) % 2 == 0) butterfly = this.shapes.butterfly;
     else{
       butterfly = this.shapes.butterfly
-      butter_tranform = butter_tranform.times(Mat4.scale(.1,1,1))
+      butter1_tranform = butter1_tranform.times(Mat4.scale(.1,1,1))
     }
 
-    butterfly.draw(caller, this.uniforms, butter_tranform, this.materials.bench)
+    butterfly.draw(caller, this.uniforms, butter1_tranform, this.materials.bench)
+
+    
+    
+
+    // let butter2_tranform = Mat4.identity()
+    //   .times(Mat4.translation(2, 3, 1.5))
+    //   .times(Mat4.rotation(Math.PI / 6, 0, 1, 1))
+    //   .times(Mat4.scale(.02, .02, .02))
+    // let butterfly2;
+    // if (Math.floor(t * 4) % 2 == 0) butterfly2 = this.shapes.butterfly;
+    // else{
+    //   butterfly2 = this.shapes.butterfly
+    //   butter2_tranform = butter2_tranform.times(Mat4.scale(.1,1,1))
+    // }
+
+    // butterfly2.draw(caller, this.uniforms, butter2_tranform, this.materials.bench)
 
     // Update Physics and Drawing
     
@@ -582,3 +602,4 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.pull_down_spring.applyPullingForce();
   }
 }
+

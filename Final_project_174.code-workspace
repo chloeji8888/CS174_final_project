@@ -1,0 +1,16 @@
+{
+  "folders": [
+	{
+		"path": "."
+	},
+	{
+		"path": "../assignment1_template_tozip"
+	},
+	{
+		"path": "../assignment2_discussion"
+	}
+],
+  "settings": {
+    "liveServer.settings.multiRootWorkspaceName": "Final_project_174"
+  }
+}
