@@ -112,7 +112,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           ambient: 0.7,
           diffusivity: 1,
           specularity: 1,
-          color: color(1, 1, 1, 1),
+          color: color(.7, .7, .7, 1),
         };
         this.materials.black = {
           shader: phong,
@@ -154,10 +154,10 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.ball_radius = 0.05;
 
         this.pull_up_spring = new Window_Spring();
-        this.pull_up = this.pull_up_spring.create(.8, 8, 0.2, 5000, 100);
+        this.pull_up = this.pull_up_spring.create(1.1, 8, 0.2, 5000, 100);
 
         this.pull_down_spring = new Window_Spring();
-        this.pull_down = this.pull_down_spring.create(.9, 8, .2, 5000, 100); 
+        this.pull_down = this.pull_down_spring.create(1.2, 8, .2, 5000, 100); 
 
         // Pulling springs control
         this.pulled_up_string_t = 0;
@@ -237,7 +237,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         let right_wall_transform = Mat4.identity()
           .times(Mat4.translation(7.75, 1, -1.75))
           .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
-          .times(Mat4.scale(.9, 5, .1))
+          .times(Mat4.scale(.7, 5, .1))
         this.shapes.cube.draw(
           caller,
           this.uniforms,
@@ -248,7 +248,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         let left_wall_transform = Mat4.identity()
           .times(Mat4.translation(7.75, 1, 1.75))
           .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
-          .times(Mat4.scale(.9, 5, .1));
+          .times(Mat4.scale(.7, 5, .1));
         this.shapes.cube.draw(
           caller,
           this.uniforms,
@@ -259,7 +259,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         let bottom_wall_transform = Mat4.identity()
           .times(Mat4.translation(7.75, 1, 0))
           .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
-          .times(Mat4.scale(1, .95, .1));
+          .times(Mat4.scale(1.2, .95, .1));
         this.shapes.cube.draw(
           caller,
           this.uniforms,
@@ -291,25 +291,25 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         )
 
         // Draw teapot
-        let teapot_transform = Mat4.identity()
-          .times(Mat4.translation(8.4, 2.12, -.6))
-          .times(Mat4.rotation(Math.PI/2, -1, 0, 0))
-          .times(Mat4.rotation(-Math.PI/3, 0, 0, 1))
-          .times(Mat4.scale(.1, .1, .1))
-        let material_teapot = this.materials.metal;
-        material_teapot["color"] = color(1, 1, 1, 1);
+        // let teapot_transform = Mat4.identity()
+        //   .times(Mat4.translation(8.4, 2.12, -.6))
+        //   .times(Mat4.rotation(Math.PI/2, -1, 0, 0))
+        //   .times(Mat4.rotation(-Math.PI/3, 0, 0, 1))
+        //   .times(Mat4.scale(.1, .1, .1))
+        // let material_teapot = this.materials.metal;
+        // material_teapot["color"] = color(1, 1, 1, 1);
 
-        this.shapes.teapot.draw(
-          caller,
-          this.uniforms,
-          teapot_transform,
-          this.materials.bench
-        )
+        // this.shapes.teapot.draw(
+        //   caller,
+        //   this.uniforms,
+        //   teapot_transform,
+        //   this.materials.bench
+        // )
 
         // Draw the skybox
         let temp = this.materials.skybox
         // temp["diffusity"] = Math.sin(t)
-        temp["ambient"] = (Math.cos(t / 7) + 1) / 3 + .2;
+        temp["ambient"] = (Math.cos(t / 7) + 1) / 3;
         this.shapes.ball.draw(
           caller, 
           this.uniforms,
@@ -348,7 +348,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.pull_up_spring.draw(caller, this.uniforms, this.shapes, this.materials);
         this.pull_down_spring.draw(caller, this.uniforms, this.shapes, this.materials)
 
-        // TODO WindChime trial
+
         this.windchime.draw(caller, this.uniforms);
 
       }
@@ -425,7 +425,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
 
     let light_position = this.sun_trail.get_position((Math.cos(t / 14) + 1) / 2);
     light_position = vec4(light_position[0], light_position[1], light_position[2], 1.0);
-    this.materials.sun["ambient"] = (Math.cos(t / 7) + 1) / 2;
+    this.materials.sun["ambient"] = (Math.cos(t / 7) + 1) / 2 + .2;
     this.shapes.ball.draw(caller, this.uniforms, Mat4.translation(light_position[0], light_position[1], light_position[2]).times(Mat4.scale(.7, .7, .7)), this.materials.sun)
     // this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ) ];
     this.uniforms.lights = [
@@ -470,7 +470,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
         slat_transform = Mat4.identity()
         .times(Mat4.translation(7.75, this.top_slat_y - i * temp , 0))
         .times(Mat4.rotation(-(Math.PI * 2) / 3, 0, 0, 1))
-        .times(Mat4.scale(0.07, 0.002, 0.83));
+        .times(Mat4.scale(0.07, 0.002, 1));
 
       this.shapes.cube.draw(
         caller,
@@ -482,7 +482,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
 
     slat_transform = Mat4.identity()
       .times(Mat4.translation(7.75, this.top_slat_y - (this.num_slats + .3) * temp, 0))
-      .times(Mat4.scale(0.05, 0.02, 0.83));
+      .times(Mat4.scale(0.05, 0.02, 1));
     this.shapes.cube.draw(
       caller,
       this.uniforms,

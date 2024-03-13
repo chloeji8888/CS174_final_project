@@ -230,9 +230,9 @@ const Black_white_Phong =
             vec3 light = phong_model_lights( normalize( N ), vertex_worldspace ) * diffusivity;
                                      
             float t0 = 0.2;
-            float t1 = 0.08;
-            float t2 = 0.06;
-            float t3 = 0.04;
+            float t1 = 0.1;
+            float t2 = 0.04;
+            float t3 = 0.01;
             float strengthFactor = 2.0;
 
             float ll = length(light);
