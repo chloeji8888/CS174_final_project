@@ -4,11 +4,13 @@ import { NewtonCradle } from './newtoncradle.js';
 import {WindChime} from './components/WindChime.js'
 import { Shape_From_File } from './examples/obj-file-demo.js';
 import { Text_Line } from './examples/text-demo.js';
+import { HermiteSpline } from './components/HermiteSpline.js';
 
 // Pull these names into this module's scope for convenience:
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
 
 // TODO: you should implement the required classes here or in another file.
+
 
 export
 const Part_one_hermite_base = defs.Part_one_hermite_base =
@@ -53,6 +55,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         const tex_phong = new defs.Textured_Phong();
         const black_white_phong = new defs.Black_white_Phong();
         const texture = new defs.Textured_Phong(1);
+        const hard_border_black_white_phong = new defs.Hard_border_Black_white_Phong();
         this.grey = {
           shader: phong,
           color: color(0.5, 0.5, 0.5, 1),
@@ -77,17 +80,17 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.materials.wall = { shader: black_white_phong, ambient: .1, diffusivity: .5, specularity: 0, color: color( .9, .9, .9, 1) }
         this.materials.road = {
           shader: black_white_phong,
-          ambient: 0.2,
-          diffusivity: 0.8,
+          ambient: 1,
+          diffusivity: 1,
           specularity: 0,
-          color: color(.9, .9, .9, 1),
+          color: color(.1, .1, .1, 1),
         };
         this.materials.grassland = {
-          shader: phong,
-          ambient: 0.7,
-          diffusivity: 0.2,
+          shader: black_white_phong,
+          ambient: 0,
+          diffusivity: 2,
           specularity: 0,
-          color: color(0.8, 0.8, 0.8, 1),
+          color: color(0.1, 0.1, 0.1, 1),
           // texture: new Texture('./assets/grassland.jpg', "NEAREST")
         };
         this.materials.table = {
@@ -98,9 +101,9 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           color: color(0, 0, 0, 1)
         };
         this.materials.skybox = {
-          shader: black_white_phong,
-          ambient: 1,
-          diffusivity: 1,
+          shader: hard_border_black_white_phong,
+          ambient: 0.8,
+          diffusivity: 0,
           specularity: 1,
           color: color(1, 1, 1, 1)
           // color: color(.5, 0, 0, 1)
@@ -140,6 +143,13 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           specularity: 0,
           color: color(1, 1, 1, 1)
         }
+        this.materials.sun = {
+          shader: black_white_phong,
+          ambient: 1,
+          diffusivity: 0,
+          specularity: 0,
+          color: color(1, 1, 1, 1)
+        }
 
         this.ball_location = vec3(1, 1, 1);
         this.ball_radius = 0.05;
@@ -160,9 +170,31 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.windchime.position = vec3(8, 2.7, -1.2);
 
         // Text trial
-        this.text = new Text_Line(20)
-          
-          
+
+        this.text = new Text_Line(20);
+
+        // TODO: bird trail
+        this.bird_trail = new HermiteSpline();
+        this.bird_trail.add_point(-2, 3, 1.5, -1, -1, 1); // Start location
+
+        // Fly around a little?
+        this.bird_trail.add_point(-3, 2.7, 2, 1, -0, -1);
+        this.bird_trail.add_point(-2, 2.4, 1.5, -1, 0, 2);
+        this.bird_trail.add_point(-2.5, 2.5, 2, 1, .5, -1);
+        this.bird_trail.add_point(-2, 3.1, 1.5, 0, -1, 0);
+        this.bird_trail.add_point(-2, 3, 1.5, -1, -1, 1);
+
+        // this.bird_trail.add_point(-2.2, 1.5, 2, -1, -2, -1);  // S-B point 1
+        // this.bird_trail.add_point(-2.5, 1.25, 1.5, 0, 0, 0); // Bench location
+
+        // TODO: sun trail
+        this.sun_trail = new HermiteSpline();
+        this.sun_trail.add_point(-5, 4, -4, 0, 0.2, 1)
+        this.sun_trail.add_point(-6, 5, 0, 0, 0, 1)
+        this.sun_trail.add_point(-5, 4, 4, 0, 0.2, -1)
+        this.sun_trail.add_point(-6, 5, 0, 0, 0, -1);
+        this.sun_trail.add_point(-5, 4, -4, 0, 0.2, 1)
+
       }
         constructor(){
         super();
@@ -282,11 +314,11 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         // Draw the skybox
         let temp = this.materials.skybox
         // temp["diffusity"] = Math.sin(t)
-        // temp["ambient"] = Math.sin(t) + .5
+        temp["ambient"] = (Math.cos(t / 7) + 1) / 3 + .2;
         this.shapes.ball.draw(
           caller, 
           this.uniforms,
-          Mat4.identity().times(Mat4.scale(10, 10, 10)).times(Mat4.translation(.2, 0, 0)),
+          Mat4.identity().times(Mat4.scale(10, 10, 9)).times(Mat4.translation(.2, 0, 0)),
           temp
         )
 
@@ -340,6 +372,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
 
     // Scripts - TODO: integrate into a class
     this.script_male = false;
+    this.getDown = -1;
   }
 
   render_animation( caller )
@@ -378,9 +411,9 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.shapes.box.draw( caller, this.uniforms, floor_transform, this.materials.grassland );
 
     // Draw road
-    let road_transform = Mat4.translation(-.2, 0.01, 0)
-      .times(Mat4.scale(1, 0.01, 10))
-    this.shapes.box.draw(caller, this.uniforms, road_transform, this.materials.road);
+    // let road_transform = Mat4.translation(-.2, 0.01, 0)
+    //   .times(Mat4.scale(1, 0.01, 10))
+    // this.shapes.box.draw(caller, this.uniforms, road_transform, this.materials.road);
 
     // !!! Draw ball (for reference)
     // let ball_transform = Mat4.translation(this.ball_location[0], this.ball_location[1], this.ball_location[2])
@@ -395,29 +428,29 @@ export class Ticket_Booth extends Part_one_hermite_base{
     // Global light
     let c1 = color(1, 1, 1, 1), c2 = color(1, 0, 0, 1);
 
-    const light_position = vec4(-5, 7, 0, 1.0);
+    let light_position = this.sun_trail.get_position((Math.cos(t / 14) + 1) / 2);
+    light_position = vec4(light_position[0], light_position[1], light_position[2], 1.0);
+    this.materials.sun["ambient"] = (Math.cos(t / 7) + 1) / 2;
+    this.shapes.ball.draw(caller, this.uniforms, Mat4.translation(light_position[0], light_position[1], light_position[2]).times(Mat4.scale(.7, .7, .7)), this.materials.sun)
     // this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ) ];
     this.uniforms.lights = [
       defs.Phong_Shader.light_source(
         light_position,
         color(
-          (Math.sin(t / 7) + 1) / 2,
-          (Math.sin(t / 7) + 1) / 2,
-          (Math.sin(t / 7) + 1) / 2,
-          1
+          1, 1, 1, 1
         ),
-        10
+        (Math.cos(t / 7) + 1) * 4 + 1
       ),
     ];
 
     // In-door lights
     const covered_percentage = (this.top_slat_y - this.lowest_slat_y) / 1.7
-    const room_light_position = vec4(10, 2, 0, 1);
+    const room_light_position = vec4(10, 2.5, 0, 1);
     this.uniforms.lights.push(
     defs.Phong_Shader.light_source(
       room_light_position,
       color(1, 1, 1, 1),
-      1 * (1 - covered_percentage)
+      1.3 * (1 - covered_percentage)
     ));
 
     // slowly increase lowest_slat_y
@@ -510,20 +543,51 @@ export class Ticket_Booth extends Part_one_hermite_base{
     }
 
     // Text
-    this.text.set_string("Albeit...", caller);
+    this.text.set_string("Help!!!", caller);
     this.text.draw(caller, this.uniforms, Mat4.identity().times(Mat4.translation(0, 4, 3)).times(Mat4.rotation(Math.PI / 2, 0, 1, 0).times(Mat4.scale(.2, .2, .2))), this.text_image)
     
     // TODO: Draw the bird
+    let bird_progress;
+    console.log("Getdown", this.getDown)
+    if (this.getDown >= 0) {
+      bird_progress = Math.min((t / 6 - this.getDown) * 3 / 4, 1);
+    }
+    else { 
+      bird_progress = t / 6 - Math.floor(t / 6);
+    }
+    let bird_position = this.bird_trail.get_position(bird_progress);
+    let bird_tangent = this.bird_trail.get_tangent(bird_progress);
+    console.log("Progress", bird_progress)
+
+    let up = vec3(0, 1, 0);
+    let right = up.cross(bird_tangent).normalized();
+    // let rotation = Mat4.of(
+    //   [right[0], right[1], right[2], bird_position[0]],
+    //   [up[0], up[1], up[2], bird_position[1]],
+    //   [bird_tangent[0], bird_tangent[1], bird_tangent[2], bird_position[2]],
+    //   [0, 0, 0, 1]
+    // )
+    // let _bird_transform = Mat4.look_at(bird_position, bird_position.plus(bird_tangent), up)
+    
+    // let wing_freq = Math.ceil(Math.random() * 100);
+    // let wing_freq = 2;
+
+    console.log("Bird tangent: ", bird_tangent)
+    // console.log("Bird rotation: ", rotation, Mat4.identity())
+
     let bird_transform = Mat4.identity()
-      .times(Mat4.translation(-2, 3, 1.5))
-      .times(Mat4.rotation(Math.PI / 2, 0, 1, 1))
-      .times(Mat4.scale(.12, .12, .12))
+      .times(Mat4.translation(bird_position[0], bird_position[1], bird_position[2]))
+      .times(Mat4.rotation(Math.PI / 1.2, 0, 1, 0))
+      .times(Mat4.rotation(-.4, 0, 0, 1))
+      .times(Mat4.rotation(Math.PI / 2, -1, 0, 0))
+      // .times(rotation)
+      .times(Mat4.scale(0.12, 0.12, 0.12));
     
     let bird;
-    if (Math.floor(t * 8) % 2 == 0) bird = this.shapes.bird;
+    if (Math.floor(t * 80) % 2 == 0 || bird_progress >= 1) bird = this.shapes.bird;
     else {
       bird = this.shapes.bird_wingspan;
-      bird_transform = bird_transform.times(Mat4.scale(.955, .955, .955))
+      bird_transform = bird_transform.times(Mat4.scale(0.955, 0.955, 0.955));
     }
 
     bird.draw(caller, this.uniforms, bird_transform, this.materials.bench)
@@ -572,8 +636,8 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.key_triggered_button("Pull the down-strip", ["N"], this.pullDownStrip);
     this.key_triggered_button( "Pull the up-strip", ['M'], this.pullUpStrip);
     this.key_triggered_button("Start Newton's cradle", ['L'], () => this.liftFirstSphere());
+    this.key_triggered_button("Get down birdie", ['K'], () => this.getDownBirdie())
 
-    
   }
 
   liftFirstSphere() {
@@ -600,6 +664,12 @@ export class Ticket_Booth extends Part_one_hermite_base{
     }
 
     this.pull_down_spring.applyPullingForce();
+  }
+
+  getDownBirdie() {
+    this.bird_trail.add_point(-2.2, 1.5, 2, -1, -2, -1); // S-B point 1
+    this.bird_trail.add_point(-2.5, 1.25, 1.5, 0, 0, 0); // Bench location
+    this.getDown = Math.floor(this.uniforms.animation_time/1000 / 6);
   }
 }
 
