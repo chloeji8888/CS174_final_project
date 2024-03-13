@@ -225,7 +225,7 @@ const Black_white_Phong =
         `
         void main() {                          
                                            // Compute an initial (ambient) color:
-            gl_FragColor = vec4( vec3(1, 1, 1).xyz * ambient, shape_color.w );
+            gl_FragColor = vec4( shape_color.xyz * ambient, shape_color.w );
                                            // Compute the final color with contributions from lights:
             vec3 light = phong_model_lights( normalize( N ), vertex_worldspace ) * diffusivity;
                                      

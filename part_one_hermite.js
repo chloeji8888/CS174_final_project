@@ -86,7 +86,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         };
         this.materials.grassland = {
           shader: black_white_phong,
-          ambient: 0,
+          ambient: .1,
           diffusivity: 2,
           specularity: 0,
           color: color(0.1, 0.1, 0.1, 1),
@@ -148,6 +148,13 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           diffusivity: 0,
           specularity: 0,
           color: color(1, 1, 1, 1)
+        }
+        this.materials.bird = {
+          shader: black_white_phong,
+          ambient: .6,
+          diffusivity: 3,
+          specularity: 0,
+          color: color(0, .1, 0, 1)
         }
 
         this.ball_location = vec3(1, 1, 1);
@@ -445,7 +452,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
         color(
           1, 1, 1, 1
         ),
-        mod_cos(t / 7, 3 / 2 * Math.PI) * 8
+        mod_cos(t / 3.5, 3 / 2 * Math.PI) * 8
       ),
     ];
 
@@ -597,7 +604,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
       bird_transform = bird_transform.times(Mat4.scale(0.955, 0.955, 0.955));
     }
 
-    bird.draw(caller, this.uniforms, bird_transform, this.materials.bench)
+    bird.draw(caller, this.uniforms, bird_transform, this.materials.bird)
 
 
     // Update Physics and Drawing
