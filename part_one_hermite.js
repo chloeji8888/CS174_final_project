@@ -165,7 +165,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // TODO: you should create a Spline class instance
         this.windchime = new WindChime();
-        this.newtoncradle = new NewtonCradle(5, 0.01, 0.05, vec3(8.5,2.2,0), 0.15)
+        this.newtoncradle = new NewtonCradle(5, 0.02, 0.02, vec3(8.5,2.2,.6), 0.15)
         this.windchime.position = vec3(8, 2.7, -1.2);
 
         // Text trial
@@ -321,6 +321,11 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
 
         // Draw Newton's cradle
+        let rod_transform = Mat4.identity()
+          .times(Mat4.translation(8.5, 2.2, .68))
+          .times(Mat4.scale(.005, .005, .12))
+
+        this.shapes.cube.draw(caller, this.uniforms, rod_transform, this.materials.slat)
         this.newtoncradle.draw(caller, this.uniforms, this.shapes, this.materials);
         
         // Calculate the time step based on the frame rate
@@ -336,7 +341,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         
 
         // Use a smaller time step for the simulation updates to maintain stability
-        const t_step = 1 / 1000; // A smaller time step for the simulation (e.g., 1 millisecond)
+        const t_step = 1 / 10000; // A smaller time step for the simulation (e.g., 1 millisecond)
 
         // Update the simulation in steps until reaching the next display time
         for (; this.t_sim <= t_next; this.t_sim += t_step) {
@@ -428,13 +433,19 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.materials.sun["ambient"] = (Math.cos(t / 7) + 1) / 2 + .2;
     this.shapes.ball.draw(caller, this.uniforms, Mat4.translation(light_position[0], light_position[1], light_position[2]).times(Mat4.scale(.7, .7, .7)), this.materials.sun)
     // this.uniforms.lights = [ defs.Phong_Shader.light_source( light_position, color( 1,1,1,1 ), 1000000 ) ];
+
+    let mod_cos = (t, p) => {
+      t = t % (Math.PI * 2)
+      if (t < p) return (Math.cos(Math.PI * t / p) + 1) / 2
+      else return (Math.cos(Math.PI * (t - p) / (Math.PI * 2 - p) + Math.PI) + 1) / 2
+    }
     this.uniforms.lights = [
       defs.Phong_Shader.light_source(
         light_position,
         color(
           1, 1, 1, 1
         ),
-        (Math.cos(t / 7) + 1) * 4 + 1
+        mod_cos(t / 7, 3 / 2 * Math.PI) * 8
       ),
     ];
 
@@ -480,8 +491,9 @@ export class Ticket_Booth extends Part_one_hermite_base{
       );
     }
 
+    console.log("lowest", this.lowest_slat_y)
     slat_transform = Mat4.identity()
-      .times(Mat4.translation(7.75, this.top_slat_y - (this.num_slats + .3) * temp, 0))
+      .times(Mat4.translation(7.75, this.top_slat_y - (this.num_slats + .3) * temp - .1 * (this.lowest_slat_y - 2.7), 0))
       .times(Mat4.scale(0.05, 0.02, 1));
     this.shapes.cube.draw(
       caller,
@@ -538,8 +550,8 @@ export class Ticket_Booth extends Part_one_hermite_base{
     }
 
     // Text
-    this.text.set_string("Help!!!", caller);
-    this.text.draw(caller, this.uniforms, Mat4.identity().times(Mat4.translation(0, 4, 3)).times(Mat4.rotation(Math.PI / 2, 0, 1, 0).times(Mat4.scale(.2, .2, .2))), this.text_image)
+    // this.text.set_string("Spring...", caller);
+    // this.text.draw(caller, this.uniforms, Mat4.identity().times(Mat4.translation(0, 4, 3)).times(Mat4.rotation(Math.PI / 2, 0, 1, 0).times(Mat4.scale(.2, .2, .2))), this.text_image)
     
     // TODO: Draw the bird
     let bird_progress;

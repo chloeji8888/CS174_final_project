@@ -101,6 +101,10 @@ export class NewtonCradle {
         this.ropes = [];
         this.gravity = vec3(0, -0.981, 0);
         this.initSpheres();
+
+        // True if right ball is lifted
+        this.leftRight = true;
+        this.restitution = .95;
     }
 
     initSpheres() {
@@ -143,16 +147,33 @@ export class NewtonCradle {
             r.update();
         }
 
-        for (let i = 0; i < this.numSpheres - 1; i++) {
-            let sphere1 = this.spheres[i];
-            let sphere2 = this.spheres[i + 1];
-            let distance = sphere1.pos.minus(sphere2.pos).norm();
-            if (distance < 2 * this.radius) {
+        if (this.leftRight) {
+            for (let i = 0; i < this.numSpheres - 1; i++) {
+                let sphere1 = this.spheres[i];
+                let sphere2 = this.spheres[i + 1];
+                let distance = sphere1.pos.minus(sphere2.pos).norm();
+                if (distance <= 2 * this.radius - .0001) {
+                    //swap velocities for elastic collision
+                    let temp = sphere1.vel;
+                    sphere1.vel = sphere2.vel.times(this.restitution);
+                    sphere2.vel = temp.times(this.restitution);
+                }
+            }
+            this.leftRight = false;
+        }
+        else {
+            for (let i = this.numSpheres - 2; i >= 0; i--) {
+              let sphere1 = this.spheres[i];
+              let sphere2 = this.spheres[i + 1];
+              let distance = sphere1.pos.minus(sphere2.pos).norm();
+              if (distance <= 2 * this.radius - .0001) {
                 //swap velocities for elastic collision
                 let temp = sphere1.vel;
-                sphere1.vel = sphere2.vel.times(0.945);
-                sphere2.vel = temp.times(0.945);
+                sphere1.vel = sphere2.vel.times(this.restitution);
+                sphere2.vel = temp.times(this.restitution);
+              }
             }
+            this.leftRight = true;
         }
 
         for (const sphere of this.spheres) {
@@ -193,7 +214,7 @@ export class NewtonCradle {
             if (angle > 0) {
                 model_transform = model_transform.times(Mat4.rotation(angle, ...axis));
             }
-            model_transform = model_transform.times(Mat4.scale(0.005, ropeLength / 2, 0.005));
+            model_transform = model_transform.times(Mat4.scale(0.002, ropeLength / 2, 0.002));
     
             shapes.box.draw(webgl_manager, uniforms, model_transform, { ...materials.plastic });
         }

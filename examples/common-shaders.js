@@ -232,7 +232,7 @@ const Black_white_Phong =
             float t0 = 0.2;
             float t1 = 0.1;
             float t2 = 0.04;
-            float t3 = 0.01;
+            float t3 = 0.005;
             float strengthFactor = 2.0;
 
             float ll = length(light);
