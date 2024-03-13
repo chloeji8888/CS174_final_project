@@ -195,6 +195,17 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.sun_trail.add_point(-6, 5, 0, 0, 0, -1);
         this.sun_trail.add_point(-5, 4, -4, 0, 0.2, 1)
 
+        //TODO: butterfly trail
+
+        this.butterfly_trail = new HermiteSpline();
+        this.butterfly_trail.add_point(-3, 2.7, 2, 1, -0, -1);
+        this.butterfly_trail.add_point(-2, 2.4, 1.5, -1, 0, 2);
+        this.butterfly_trail.add_point(-2.5, 2.5, 2, 1, .5, -1);
+        this.butterfly_trail.add_point(-1.5, 2, 2, 1, .5, -1);
+        this.butterfly_trail.add_point(-1, 2.5, 2, 1, .5, -1);
+        this.butterfly_trail.add_point(-1.5, 2, 2, 1, .5, -1);
+         this.butterfly_trail.add_point(-2.5, 2.5, 2, 1, .5, -1);
+
       }
         constructor(){
         super();
@@ -590,14 +601,27 @@ export class Ticket_Booth extends Part_one_hermite_base{
       bird_transform = bird_transform.times(Mat4.scale(0.955, 0.955, 0.955));
     }
 
-    bird.draw(caller, this.uniforms, bird_transform, this.materials.bench)
+    // bird.draw(caller, this.uniforms, bird_transform, this.materials.bench)
 
 
     //TODO: Draw the butterfly
+    let butterfly_progress;
+    console.log("Getdown", this.getDown)
+    if (this.getDown >= 0) {
+      butterfly_progress = Math.min((t / 6 - this.getDown) * 3 / 4, 1);
+    }
+    else { 
+      butterfly_progress = t / 6 - Math.floor(t / 6);
+    }
+
+    let butterfly_pos = this.butterfly_trail.get_position(butterfly_progress)
+    let butter_tan = this.butterfly_trail.get_tangent(butterfly_progress)
+
     let butter1_tranform = Mat4.identity()
-      .times(Mat4.translation(0, 3, 1.5))
+      .times(Mat4.translation(butterfly_pos[0], butterfly_pos[1], butterfly_pos[2]))
       .times(Mat4.rotation(Math.PI / 6, 0, 1, 1))
       .times(Mat4.scale(.04, .04, .04))
+
     let butterfly;
     if (Math.floor(t * 4) % 2 == 0) butterfly = this.shapes.butterfly;
     else{
@@ -637,6 +661,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.key_triggered_button( "Pull the up-strip", ['M'], this.pullUpStrip);
     this.key_triggered_button("Start Newton's cradle", ['L'], () => this.liftFirstSphere());
     this.key_triggered_button("Get down birdie", ['K'], () => this.getDownBirdie())
+    this.key_triggered_button("Get down butterfly",['B'],() => this.butterflyAway())
 
   }
 
@@ -670,6 +695,12 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.bird_trail.add_point(-2.2, 1.5, 2, -1, -2, -1); // S-B point 1
     this.bird_trail.add_point(-2.5, 1.25, 1.5, 0, 0, 0); // Bench location
     this.getDown = Math.floor(this.uniforms.animation_time/1000 / 6);
+  }
+
+  butterflyAway(){
+    this.butterfly_trail.add_point(-2.2, 1.5, 2, -1, -2, -1);
+    this.butterfly_trail.add_point(-2.5, 1.2, 1.5, 0, 0, 0);
+    this.getDown = Math.floor(this.uniforms.animation_time/1000 / 8);
   }
 }
 
