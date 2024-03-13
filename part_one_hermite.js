@@ -151,6 +151,14 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           color: color(1, 1, 1, 1)
         }
 
+        this.materials.butter= {
+          shader: phong,
+          ambient: 0.8,
+          diffusivity: 0,
+          specularity: 0,
+          color: color(0.7, 0, 0, 1)
+        }
+
         this.ball_location = vec3(1, 1, 1);
         this.ball_radius = 0.05;
 
@@ -198,14 +206,14 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         //TODO: butterfly trail
 
         this.butterfly_trail = new HermiteSpline();
-        this.butterfly_trail.add_point(-3, 2.7, 2, 1, -0, -1);
-        this.butterfly_trail.add_point(-2, 2.4, 1.5, -1, 0, 2);
-        this.butterfly_trail.add_point(-2.5, 2.5, 2, 1, .5, -1);
-        this.butterfly_trail.add_point(-1.5, 2, 2, 1, .5, -1);
-        this.butterfly_trail.add_point(-1, 2.5, 2, 1, .5, -1);
-        this.butterfly_trail.add_point(-1.5, 2, 2, 1, .5, -1);
-         this.butterfly_trail.add_point(-2.5, 2.5, 2, 1, .5, -1);
-
+        this.butterfly_trail.add_point(-3, 1.7, -2, 1, -0, -1);
+        this.butterfly_trail.add_point(-2, 1.4, -2.5, -1, 0, 2);
+        this.butterfly_trail.add_point(-2.5, 1.5, -2, 1, .5, -1);
+        this.butterfly_trail.add_point(-1.5, 1, -2, 1, .5, -1);
+        this.butterfly_trail.add_point(-1, 1.5, -2, 1, .5, -1);
+        this.butterfly_trail.add_point(-1.5, 1, -2, 1, .5, -1);
+        this.butterfly_trail.add_point(-2.5, 1.5, -2, 1, .5, -1);
+       
       }
         constructor(){
         super();
@@ -387,21 +395,8 @@ export class Ticket_Booth extends Part_one_hermite_base{
   }
 
   render_animation( caller )
-  {                                                // display():  Called once per frame of animation.  For each shape that you want to
-    // appear onscreen, place a .draw() call for it inside.  Each time, pass in a
-    // different matrix value to control where the shape appears.
-
-    // Variables that are in scope for you to use:
-    // this.shapes.box:   A vertex array object defining a 2x2x2 cube.
-    // this.shapes.ball:  A vertex array object defining a 2x2x2 spherical surface.
-    // this.materials.metal:    Selects a shader and draws with a shiny surface.
-    // this.materials.plastic:  Selects a shader and draws a more matte surface.
-    // this.lights:  A pre-made collection of Light objects.
-    // this.hover:  A boolean variable that changes when the user presses a button.
-    // shared_uniforms:  Information the shader needs for drawing.  Pass to draw().
-    // caller:  Wraps the WebGL rendering context shown onscreen.  Pass to draw().
-
-    // Call the setup code that we left inside the base class:
+  {                                  
+   
     super.render_animation( caller );
 
     /**********************************
@@ -619,7 +614,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
 
     let butter1_tranform = Mat4.identity()
       .times(Mat4.translation(butterfly_pos[0], butterfly_pos[1], butterfly_pos[2]))
-      .times(Mat4.rotation(Math.PI / 6, 0, 1, 1))
+      .times(Mat4.rotation(Math.PI / 5, 0, 1, 1))
       .times(Mat4.scale(.04, .04, .04))
 
     let butterfly;
@@ -629,7 +624,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
       butter1_tranform = butter1_tranform.times(Mat4.scale(.1,1,1))
     }
 
-    butterfly.draw(caller, this.uniforms, butter1_tranform, this.materials.bench)
+    butterfly.draw(caller, this.uniforms, butter1_tranform, this.materials.butter);
 
     
     
@@ -698,6 +693,9 @@ export class Ticket_Booth extends Part_one_hermite_base{
   }
 
   butterflyAway(){
+    this.butterfly_trail.add_point(-2.5, 1.3, -1, 1, .5, -1);
+    this.butterfly_trail.add_point(-2.5, 1.2, -0.5, 1, .5, -1);
+    this.butterfly_trail.add_point(-2.5, 1.3, 0, 1, .5, -1);
     this.butterfly_trail.add_point(-2.2, 1.5, 2, -1, -2, -1);
     this.butterfly_trail.add_point(-2.5, 1.2, 1.5, 0, 0, 0);
     this.getDown = Math.floor(this.uniforms.animation_time/1000 / 8);
