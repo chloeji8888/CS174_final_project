@@ -153,10 +153,10 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         }
         this.materials.bird = {
           shader: black_white_phong,
-          ambient: .6,
-          diffusivity: 3,
+          ambient: .3,
+          diffusivity: 5,
           specularity: 0,
-          color: color(0, .1, 0, 1)
+          color: color(0, 0, .2, 1)
         }
 
         this.materials.butter = {
@@ -710,6 +710,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
         bird_transform = bird_transform.times(Mat4.scale(0.955, 0.955, 0.955));
       }
 
+      this.materials.bird['ambient'] = light_strength / 3;
       bird.draw(caller, this.uniforms, bird_transform, this.materials.bird);
     } else if (this.season == 2) {
       this.materials.grassland["ambient"] = 0.1;
