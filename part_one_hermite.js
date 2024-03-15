@@ -2,6 +2,7 @@ import {tiny, defs} from './examples/common.js';
 import { Window_Spring } from './Window_particle.js';
 import { NewtonCradle } from './newtoncradle.js';
 import {WindChime} from './components/WindChime.js'
+import { Star } from './components/Star.js';
 import { Shape_From_File } from './examples/obj-file-demo.js';
 import { Text_Line } from './examples/text-demo.js';
 import { HermiteSpline } from './components/HermiteSpline.js';
@@ -183,6 +184,19 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.windchime = new WindChime();
         this.newtoncradle = new NewtonCradle(5, 0.02, 0.02, vec3(8.5,2.2,.6), 0.15)
         this.windchime.position = vec3(8, 2.7, -1.2);
+
+        // TODO: create Star
+        this.star1 = new Star(Math.PI / 3, 1.3, 7, 1, 0.5);
+        this.star1.position = vec3(-4, 7, 5)
+        this.star1.gravity = -9.8;
+
+        this.star2 = new Star(Math.PI / 4, 1.3, 5, .8, 0.5);
+        this.star2.position = vec3(-4, 7, 4);
+        this.star2.gravity = -9.8;
+
+        this.star3 = new Star(Math.PI / 5, 2.4, 9, 2, 0.5);
+        this.star3.position = vec3(-4, 7, 3);
+        this.star3.gravity = -9.8;
 
         // Text trial
 
@@ -379,6 +393,9 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         this.windchime.draw(caller, this.uniforms);
 
+        this.star1.draw(caller, this.uniforms);
+        this.star2.draw(caller, this.uniforms);
+        this.star3.draw(caller, this.uniforms);
       }
     }
 
@@ -481,7 +498,23 @@ export class Ticket_Booth extends Part_one_hermite_base{
         );
     };
 
-    let light_strength = mod_cos(t / this.day_interval * 2, (3 / 2) * Math.PI) * 8;
+    let d_mod_cos_ = (t, p) => {
+      t = t % (Math.PI * 2);
+      if (t < p) return -Math.sin((Math.PI * t) / p);
+      else
+        return (
+          -Math.sin((Math.PI * (t - p)) / (Math.PI * 2 - p) + Math.PI)
+        );
+    };
+
+    let light_strength = mod_cos(t / this.day_interval * 2, (5 / 3) * Math.PI) * 8;
+    let d_light_strength = d_mod_cos_(
+      (t / this.day_interval) * 2,
+      (5 / 3) * Math.PI
+    );
+
+    console.log("D-value", d_light_strength);
+
     this.uniforms.lights = [
       defs.Phong_Shader.light_source(
         light_position,
@@ -498,6 +531,20 @@ export class Ticket_Booth extends Part_one_hermite_base{
       this.season = ((this.season + 1) % 3) + 1;
     }
 
+    // Stars drop
+    if (light_strength < 2 && d_light_strength < 0) {
+      this.star1.gravity = 9.8;
+      this.star2.gravity = 9.8;
+      this.star3.gravity = 9.8;
+    }
+
+    // Stars acsend
+    else if (light_strength < 1 && d_light_strength > 0) {
+      this.star1.gravity = -9.8;
+      this.star2.gravity = -9.8;
+      this.star3.gravity = -9.8;
+    }
+
     // In-door lights
     const covered_percentage = (this.top_slat_y - this.lowest_slat_y) / 1.7;
     const room_light_position = vec4(10, 2.5, 0, 1);
@@ -505,7 +552,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
       defs.Phong_Shader.light_source(
         room_light_position,
         color(1, 1, 1, 1),
-        1.3 * (1 - covered_percentage)
+        (light_strength / 7 + .3) * (1 - covered_percentage)
       )
     );
 
@@ -670,12 +717,15 @@ export class Ticket_Booth extends Part_one_hermite_base{
 
       //TODO: Draw the butterfly
       let butterfly_progress;
-      console.log("Getdown", this.getDown);
-      if (this.getDown >= 0) {
-        butterfly_progress = Math.min(((t / 6 - this.getDown) * 3) / 4, 1);
-      } else {
-        butterfly_progress = t / 6 - Math.floor(t / 6);
-      }
+      // console.log("Getdown", this.getDown);
+      // if (this.getDown >= 0) {
+      //   butterfly_progress = Math.min(((t / 6 - this.getDown) * 3) / 4, 1);
+      // } else {
+      //   butterfly_progress = t / 6 - Math.floor(t / 6);
+      // }
+
+      butterfly_progress = t / 6 - Math.floor(t / 6);
+
 
       let butterfly_pos = this.butterfly_trail.get_position(butterfly_progress);
       let butter_tan = this.butterfly_trail.get_tangent(butterfly_progress);
@@ -730,6 +780,9 @@ export class Ticket_Booth extends Part_one_hermite_base{
 
     // Update physical system
     this.windchime.dump(t, 1 / 60);
+    this.star1.dump(t, 1 / 60);
+    this.star2.dump(t, 1 / 60);
+    this.star3.dump(t, 1 / 60);
 
     // Draw the skybox
     let skybox_material = this.materials.skybox;
@@ -793,7 +846,8 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.butterfly_trail.add_point(-2.5, 1.3, 0, 1, .5, -1);
     this.butterfly_trail.add_point(-2.2, 1.5, 2, -1, -2, -1);
     this.butterfly_trail.add_point(-2.5, 1.2, 1.5, 0, 0, 0);
-    this.getDown = Math.floor(this.uniforms.animation_time/1000 / 8);
+    this.butterfly_trail.add_point(-3, 1.7, -2, 1, -0, -1);
+    // this.getDown = Math.floor(this.uniforms.animation_time/1000 / 8);
   }
 }
 

@@ -108,9 +108,9 @@ export class PhysicalObject {
     if (this.shape === null) return;
 
     let absolute_transform = base_transform
-        .times(this.get_transform(this.position))
-        .times(this.rotation)
-        .times(this.scale);
+      .times(this.get_transform(this.position))
+      .times(this.rotation)
+      .times(this.scale);
 
     this.shape.draw(webgl_manager, uniforms, absolute_transform, material);
   }
