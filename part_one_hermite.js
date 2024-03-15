@@ -693,6 +693,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
   }
 
   butterflyAway(){
+    this.butterfly_trail.add_point(-2.5, 1.3, -1.5, 1, .5, -1);
     this.butterfly_trail.add_point(-2.5, 1.3, -1, 1, .5, -1);
     this.butterfly_trail.add_point(-2.5, 1.2, -0.5, 1, .5, -1);
     this.butterfly_trail.add_point(-2.5, 1.3, 0, 1, .5, -1);
