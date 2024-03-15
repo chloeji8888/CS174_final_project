@@ -44,6 +44,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           'bench': new Shape_From_File('./assets/Bench_HighRes.obj'),
           'teapot': new Shape_From_File('./assets/teapot.obj'),
           'male-model': new Shape_From_File('./assets/FinalBaseMesh.obj'),
+          'leaf' : new Shape_From_File('./assets/leaf.obj'),
         };
 
         // *** Materials: ***  A "material" used on individual shapes specifies all fields
@@ -192,6 +193,20 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.sun_trail.add_point(-5, 4, 4, 0, 0.2, -1)
         this.sun_trail.add_point(-6, 5, 0, 0, 0, -1);
         this.sun_trail.add_point(-5, 4, -4, 0, 0.2, 1)
+
+        //leaves falling
+        this.leafStates = [];
+        this.totalLeaves = 50;
+        const fallInterval = 1.5; // time delay between starting each leaf's fall
+
+        for (let i = 0; i < this.totalLeaves; i++) {
+            this.leafStates.push({
+                progress: 0,
+                startTime: i * fallInterval,
+                yOffset: Math.cos(i) * 0.2,
+                zOffset: Math.sin(i) * 0.8,
+            });
+        }
       }
         constructor(){
         super();
@@ -587,9 +602,48 @@ export class Ticket_Booth extends Part_one_hermite_base{
 
     bird.draw(caller, this.uniforms, bird_transform, this.materials.bench)
 
+    // Leaf
+    const fallingSpeed = .3; 
+
+    this.leafStates.forEach((leaf, index) => {
+      const elapsedTime = this.uniforms.animation_time / 1000;
+      if (elapsedTime >= leaf.startTime && leaf.progress < 1) {
+          leaf.progress = Math.min((elapsedTime - leaf.startTime) * fallingSpeed, 1);
+
+          //leaf's path
+          let leafSpline = new HermiteSpline();
+          leafSpline.add_point(-1, 1.7 + leaf.yOffset, -1 + leaf.zOffset, -1, -1, 1);
+          leafSpline.add_point(-1, 1.4 + leaf.yOffset, -.5 + leaf.zOffset, 0.5, -0.5, -0.5);
+          leafSpline.add_point(-1, 1.1 + leaf.yOffset, 0 + leaf.zOffset, -1, 1, 0.5);
+          leafSpline.add_point(-1, 0.9 + leaf.yOffset, -.5 + leaf.zOffset, 1, 0.5, -1);
+          leafSpline.add_point(-1, .7 + leaf.yOffset, 0 + leaf.zOffset, 0, -1, 0);
+          leafSpline.add_point(-1, .3 + leaf.yOffset, 0 + leaf.zOffset, -1, -1, 1);
+          leafSpline.add_point(-1, -.1 + leaf.yOffset, 0 + leaf.zOffset, 0, 0, 0); // End point
+
+          let leafPosition = leafSpline.get_position(leaf.progress);
+          let leafTangent = leafSpline.get_tangent(leaf.progress);
+          let angle = Math.atan2(leafTangent[2], leafTangent[0]);
+
+          let leaf_transform = Mat4.identity()
+              .times(Mat4.translation(...leafPosition))
+              .times(Mat4.rotation(angle, 0, 1, 0))
+              .times(Mat4.rotation(Math.PI / 1.2, 1, 0, 0))
+              .times(Mat4.scale(0.1, 0.1, 0.1));
+
+          this.shapes.leaf.draw(caller, this.uniforms, leaf_transform, this.materials.bench);
+      }
+    });
+
+    //reset all leaves to start over for continuous looping
+    if (this.leafStates.every(leaf => leaf.progress >= 1)) {
+        this.leafStates.forEach(leaf => {
+            leaf.progress = 0;
+            leaf.startTime += this.totalLeaves * fallingSpeed;
+        });
+    }
+  
 
     // Update Physics and Drawing
-    
 
     // Update physical system
     this.windchime.dump(t, 1/60);
