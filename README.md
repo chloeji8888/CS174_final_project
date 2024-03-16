@@ -10,19 +10,19 @@ Team Members and Contacts
 
 Name
 
-       Zhenyuxi Ji
+    Zhenyuxi Ji
 
     Haotian Yi
 
-      Laiyin Dai
+    Laiyin Dai
 
 SID
 
-      805741639
+    805741639
 
     605724155
 
-     005569647
+    005569647
 
 Email
 
