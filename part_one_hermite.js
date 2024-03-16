@@ -6,6 +6,7 @@ import { Star } from './components/Star.js';
 import { Shape_From_File } from './examples/obj-file-demo.js';
 import { Text_Line } from './examples/text-demo.js';
 import { HermiteSpline } from './components/HermiteSpline.js';
+import { CatmullRomSpline } from './components/CatmullRomSpline.js';
 
 // Pull these names into this module's scope for convenience:
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
@@ -230,6 +231,13 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.sun_trail.add_point(-5, 4, 4, 0, 0.2, 0)
         this.sun_trail.add_point(-6, 5, 0, 0, 0, -1);
         this.sun_trail.add_point(-5, 4, -4, 0, 0.2, 0)
+
+        // this.sun_trail = new CatmullRomSpline();
+        // this.sun_trail.add_point(-5, 4, -4);
+        // this.sun_trail.add_point(-6, 5, 0);
+        // this.sun_trail.add_point(-5, 4, 4);
+        // this.sun_trail.add_point(-6, 5, 0);
+        // this.sun_trail.add_point(-5, 4, -4);
 
         //TODO: butterfly trail
 
