@@ -435,7 +435,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.script_male = false;
     this.getDown = -1;
 
-    this.season = 3;  // Spring - Winter, 1 - 4
+    this.season = 1;  // Spring - Winter, 1 - 4
     this.day_interval = 8;
   }
 
