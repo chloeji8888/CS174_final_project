@@ -167,6 +167,12 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
           specularity: 0,
           color: color(.1, 0, 0, 1)
         }
+        this.materials.leaf = {
+          shader: black_white_phong,
+          ambient: 0.3,
+          diffusivity: 1,
+          color: color(1, .4, 0, 1)
+        }
 
         this.ball_location = vec3(1, 1, 1);
         this.ball_radius = 0.05;
@@ -236,8 +242,22 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
         this.butterfly_trail.add_point(-1.5, 1, -2, 1, .5, -1);
         this.butterfly_trail.add_point(-2.5, 1.5, -2, -1, .5, 0);
         this.butterfly_trail.add_point(-3, 1.7, -2, 1, -0, -1);
-       
+
+        //leaves falling
+        this.leafStates = [];
+        this.totalLeaves = 50;
+        const fallInterval = 1.5; // time delay between starting each leaf's fall
+
+        for (let i = 0; i < this.totalLeaves; i++) {
+            this.leafStates.push({
+                progress: 0,
+                startTime: i * fallInterval,
+                yOffset: Math.cos(i) * 0.2,
+                zOffset: Math.sin(i) * 0.8,
+            });
+        }
       }
+
         constructor(){
         super();
         this.t_sim = 0; 
@@ -415,7 +435,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
     this.script_male = false;
     this.getDown = -1;
 
-    this.season = 1;  // Spring - Winter, 1 - 4
+    this.season = 3;  // Spring - Winter, 1 - 4
     this.day_interval = 8;
   }
 
@@ -533,7 +553,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
     }
 
     // Stars drop
-    if (light_strength < 2 && d_light_strength < 0) {
+    if (light_strength < 1 && d_light_strength < 0) {
       this.star1.gravity = 9.8;
       this.star2.gravity = 9.8;
       this.star3.gravity = 9.8;
@@ -837,11 +857,12 @@ export class Ticket_Booth extends Part_one_hermite_base{
             .times(Mat4.rotation(Math.PI / 1.2, 1, 0, 0))
             .times(Mat4.scale(0.1, 0.1, 0.1));
 
+          this.materials.leaf["ambient"] = light_strength / 8;
           this.shapes.leaf.draw(
             caller,
             this.uniforms,
             leaf_transform,
-            this.materials.bench
+            this.materials.leaf
           );
         }
       });
