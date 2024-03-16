@@ -189,7 +189,7 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // TODO: you should create a Spline class instance
         this.windchime = new WindChime();
-        this.newtoncradle = new NewtonCradle(5, 0.02, 0.02, vec3(8.5,2.2,.6), 0.15)
+        this.newtoncradle = new NewtonCradle(5, 0.01, 0.05, vec3(8.5,2.2,0), 0.15)
         this.windchime.position = vec3(8, 2.7, -1.2);
 
         // TODO: create Star
@@ -380,8 +380,8 @@ const Part_one_hermite_base = defs.Part_one_hermite_base =
 
         // Draw Newton's cradle
         let rod_transform = Mat4.identity()
-          .times(Mat4.translation(8.5, 2.2, .68))
-          .times(Mat4.scale(.005, .005, .12))
+          .times(Mat4.translation(8.5, 2.2, 0.2))
+          .times(Mat4.scale(.005, .005, .22))
 
         this.shapes.cube.draw(caller, this.uniforms, rod_transform, this.materials.slat)
         this.newtoncradle.draw(caller, this.uniforms, this.shapes, this.materials);

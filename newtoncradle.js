@@ -103,8 +103,8 @@ export class NewtonCradle {
         this.initSpheres();
 
         // True if right ball is lifted
-        this.leftRight = true;
-        this.restitution = .95;
+        //this.leftRight = true;
+        this.restitution = .99;
     }
 
     initSpheres() {
@@ -147,33 +147,17 @@ export class NewtonCradle {
             r.update();
         }
 
-        if (this.leftRight) {
-            for (let i = 0; i < this.numSpheres - 1; i++) {
-                let sphere1 = this.spheres[i];
-                let sphere2 = this.spheres[i + 1];
-                let distance = sphere1.pos.minus(sphere2.pos).norm();
-                if (distance <= 2 * this.radius - .0001) {
-                    //swap velocities for elastic collision
-                    let temp = sphere1.vel;
-                    sphere1.vel = sphere2.vel.times(this.restitution);
-                    sphere2.vel = temp.times(this.restitution);
-                }
-            }
-            this.leftRight = false;
-        }
-        else {
-            for (let i = this.numSpheres - 2; i >= 0; i--) {
-              let sphere1 = this.spheres[i];
-              let sphere2 = this.spheres[i + 1];
-              let distance = sphere1.pos.minus(sphere2.pos).norm();
-              if (distance <= 2 * this.radius - .0001) {
+
+        for (let i = 0; i < this.numSpheres - 1; i++) {
+            let sphere1 = this.spheres[i];
+            let sphere2 = this.spheres[i + 1];
+            let distance = sphere1.pos.minus(sphere2.pos).norm();
+            if (distance < 2 * this.radius /*- .0001*/) {
                 //swap velocities for elastic collision
                 let temp = sphere1.vel;
                 sphere1.vel = sphere2.vel.times(this.restitution);
                 sphere2.vel = temp.times(this.restitution);
-              }
             }
-            this.leftRight = true;
         }
 
         for (const sphere of this.spheres) {
