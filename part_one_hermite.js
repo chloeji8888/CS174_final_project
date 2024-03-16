@@ -549,7 +549,7 @@ export class Ticket_Booth extends Part_one_hermite_base{
     // Season change
     console.log("time", t);
     if (light_strength < 0.001) {
-      this.season = ((this.season + 1) % 3) + 1;
+      this.season = ((this.season + 1) % 4) + 1;
     }
 
     // Stars drop
